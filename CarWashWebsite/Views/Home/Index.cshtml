@@ -45,6 +45,11 @@
             </div>
         </div>
 
+        <figure class="hero__mascot">
+            <img src="~/img/mascot.png" width="675" height="1000" alt=""
+                 fetchpriority="high" decoding="async" />
+        </figure>
+
         <div class="hero__card">
             <form class="picker" id="carPicker" novalidate>
                 <h2>Get your exact price</h2>
@@ -482,7 +487,9 @@
 </section>
 
 @* ------------------------------------------------------------------ closing CTA *@
-<section class="cta-band">
+<section class="cta-band cta-band--mascot">
+    <img class="cta-band__mascot" src="~/img/mascot.png" width="675" height="1000" alt=""
+         loading="lazy" decoding="async" />
     <div class="wrap cta-band__inner">
         <div>
             <h2>Your car is 40 minutes away from looking new</h2>
