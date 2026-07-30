@@ -1,0 +1,116 @@
+@model Service
+
+<section class="page-head page-head--service">
+    <div class="wrap detail">
+        <div class="detail__copy">
+            <nav class="crumbs" aria-label="Breadcrumb">
+                <a href="/">Home</a>
+                <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                <a href="/services">Services</a>
+                <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                <span aria-current="page">@Model.Name</span>
+            </nav>
+
+            <span class="detail__icon" aria-hidden="true">
+                <svg class="ic"><use href="#i-@Model.Icon" /></svg>
+            </span>
+
+            <h1>
+                @Model.Name
+                @if (Model.IsNew)
+                {
+                    <span class="pill pill--new">New</span>
+                }
+                else if (Model.IsBestseller)
+                {
+                    <span class="pill">Bestseller</span>
+                }
+            </h1>
+            <p class="detail__lede">@Model.Tagline</p>
+
+            <ul class="detail__facts">
+                <li>
+                    <svg class="ic" aria-hidden="true"><use href="#i-clock" /></svg>
+                    <span><em>Time taken</em><strong>@Model.Duration</strong></span>
+                </li>
+                <li>
+                    <svg class="ic" aria-hidden="true"><use href="#i-shield-tick" /></svg>
+                    <span><em>Warranty</em><strong>@Model.Warranty</strong></span>
+                </li>
+                <li>
+                    <svg class="ic" aria-hidden="true"><use href="#i-van" /></svg>
+                    <span><em>Doorstep</em><strong>@(Model.StartingPrice >= 999 ? "Free pickup & drop" : "₹149 within 8 km")</strong></span>
+                </li>
+            </ul>
+        </div>
+
+        <aside class="detail__card">
+            <h2>What it costs for your car</h2>
+            <table class="mini-table">
+                <thead>
+                    <tr><th scope="col">Body type</th><th scope="col" class="num">Price</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var (bodyType, _) in CatalogService.BodyTypeMultipliers)
+                    {
+                        <tr>
+                            <th scope="row">@bodyType</th>
+                            <td class="num">
+                                <strong>₹@CatalogService.PriceFor(Model.StartingPrice, bodyType).ToString("N0")</strong>
+                                <s>₹@CatalogService.PriceFor(Model.ListPrice, bodyType).ToString("N0")</s>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <p class="mini-table__note">@Model.SavingsPercent% off list price · GST included</p>
+            <a class="btn btn--primary btn--block" href="/book?service=@Model.Slug">
+                Book @Model.Name
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </a>
+            <a class="btn btn--ghost btn--block" href="https://wa.me/918999229855" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg>
+                Ask a question first
+            </a>
+        </aside>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap detail-body">
+        <div>
+            <h2>What is included</h2>
+            <ul class="ticks ticks--lg">
+                @foreach (var item in Model.Includes)
+                {
+                    <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>@item.Text</li>
+                }
+            </ul>
+        </div>
+        <div>
+            <h2>How we do it</h2>
+            <ol class="numbered">
+                <li>A trained detailer inspects the car and photographs anything already damaged, so there is no dispute later.</li>
+                <li>Work happens in a covered bay with dedicated tools for this service — no shared brushes, no shortcuts.</li>
+                <li>You get progress photos on WhatsApp. Any extra work is quoted with a photo and waits for your approval.</li>
+                <li>Final inspection with you present (or on video), then payment by UPI, card or cash.</li>
+            </ol>
+        </div>
+    </div>
+</section>
+
+<section class="cta-band">
+    <div class="wrap cta-band__inner">
+        <div>
+            <h2>Book @Model.Name from ₹@Model.StartingPrice.ToString("N0")</h2>
+            <p>Use code <strong>PITSTOP20</strong> for 20% off your first booking.</p>
+        </div>
+        <div class="cta-band__actions">
+            <a class="btn btn--accent" href="/book?service=@Model.Slug">
+                Book now
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </a>
+            <a class="btn btn--outline-light" href="/services">See all services</a>
+        </div>
+    </div>
+</section>

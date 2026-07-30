@@ -1,0 +1,60 @@
+@model Booking
+
+<section class="section confirm">
+    <div class="wrap confirm__inner">
+        <span class="confirm__tick" aria-hidden="true">
+            <svg class="ic"><use href="#i-check" /></svg>
+        </span>
+        <p class="eyebrow">Booking confirmed</p>
+        <h1>You are on the list, @Model.CustomerName.Split(' ')[0].</h1>
+        <p class="confirm__lede">
+            We will call <strong>@Model.Phone</strong> within 15 minutes to lock your slot.
+            Save this reference — quote it on WhatsApp for any change.
+        </p>
+
+        <p class="confirm__ref">
+            <em>Reference</em>
+            <strong>@Model.Reference</strong>
+        </p>
+
+        <dl class="summary summary--wide">
+            <div>
+                <dt>Service</dt>
+                <dd>@(Model.Service?.Name ?? "—")</dd>
+            </div>
+            <div>
+                <dt>Car</dt>
+                <dd>@Model.CarBrand @Model.CarModel <span class="badge badge--body">@Model.BodyType</span></dd>
+            </div>
+            <div>
+                <dt>When</dt>
+                <dd>@Model.PreferredDate.ToString("ddd, d MMM yyyy") · @Model.PreferredSlot</dd>
+            </div>
+            <div>
+                <dt>Where</dt>
+                <dd>@Model.Locality, Pune</dd>
+            </div>
+            <div>
+                <dt>Quoted price</dt>
+                <dd><strong>₹@Model.QuotedPrice.ToString("N0")</strong> <em>incl. GST</em></dd>
+            </div>
+            <div>
+                <dt>Status</dt>
+                <dd><span class="badge badge--status">@Model.Status</span></dd>
+            </div>
+        </dl>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <p class="confirm__notes"><strong>Your note:</strong> @Model.Notes</p>
+        }
+
+        <div class="confirm__actions">
+            <a class="btn btn--primary" href="https://wa.me/918999229855?text=@Uri.EscapeDataString($"Hi, about booking {Model.Reference}")" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg>
+                Message us about this booking
+            </a>
+            <a class="btn btn--ghost" href="/">Back to home</a>
+        </div>
+    </div>
+</section>

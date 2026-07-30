@@ -1,0 +1,126 @@
+@model List<WashPlan>
+
+<section class="page-head">
+    <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+            <span aria-current="page">Wash plans</span>
+        </nav>
+        <h1>Monthly car wash plans in Pune</h1>
+        <p>
+            Month-to-month, no lock-in, cancel from WhatsApp. Works out cheaper than paying per wash —
+            and unlike the building cleaner, it actually turns up.
+        </p>
+    </div>
+</section>
+
+<section class="section section--dark">
+    <div class="wrap">
+        <div class="plan-grid">
+            @foreach (var plan in Model)
+            {
+                <article class="plan @(plan.IsPopular ? "plan--popular" : "")">
+                    @if (plan.IsPopular)
+                    {
+                        <span class="plan__flag">Most popular</span>
+                    }
+                    <h2>@plan.Name</h2>
+                    <p class="plan__blurb">@plan.Blurb</p>
+                    <p class="plan__price">
+                        <span>₹@plan.PricePerMonth.ToString("N0")</span>
+                        <em>/month</em>
+                    </p>
+                    <p class="plan__list">
+                        <s>₹@plan.ListPricePerMonth.ToString("N0")</s>
+                        worth of services
+                    </p>
+                    <p class="plan__count">@plan.WashCount</p>
+                    <ul class="ticks">
+                        @foreach (var feature in plan.Features)
+                        {
+                            <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>@feature.Text</li>
+                        }
+                    </ul>
+                    <a class="btn @(plan.IsPopular ? "btn--primary" : "btn--outline-light") btn--block"
+                       href="/book?plan=@Uri.EscapeDataString(plan.Name)">
+                        Choose @plan.Name
+                    </a>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap faq-wrap">
+        <header class="section__head section__head--center">
+            <div>
+                <p class="eyebrow">Plan rules, in plain words</p>
+                <h2>Before you subscribe</h2>
+            </div>
+        </header>
+        <div class="accordion">
+            <div class="accordion__item">
+                <h3>
+                    <button type="button" class="accordion__trigger" aria-expanded="true" aria-controls="p-0">
+                        <span>Do unused washes carry forward?</span>
+                        <svg class="ic" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                    </button>
+                </h3>
+                <div class="accordion__panel" id="p-0">
+                    <p>One month's worth carries forward, capped at your monthly allowance. Beyond that they lapse — otherwise a year of unused washes lands on us in one weekend.</p>
+                </div>
+            </div>
+            <div class="accordion__item">
+                <h3>
+                    <button type="button" class="accordion__trigger" aria-expanded="false" aria-controls="p-1">
+                        <span>Is the price the same for an SUV?</span>
+                        <svg class="ic" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                    </button>
+                </h3>
+                <div class="accordion__panel" id="p-1" hidden>
+                    <p>Plan prices shown are for hatchbacks. Sedans are 15% higher, SUVs 35%, luxury 75% — the same multipliers we use on individual services. You will see your exact monthly amount before paying.</p>
+                </div>
+            </div>
+            <div class="accordion__item">
+                <h3>
+                    <button type="button" class="accordion__trigger" aria-expanded="false" aria-controls="p-2">
+                        <span>Can two cars share one plan?</span>
+                        <svg class="ic" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                    </button>
+                </h3>
+                <div class="accordion__panel" id="p-2" hidden>
+                    <p>A plan is tied to one registration number. For a second car, add it at 30% off the plan price — ask us on WhatsApp and we will apply it.</p>
+                </div>
+            </div>
+            <div class="accordion__item">
+                <h3>
+                    <button type="button" class="accordion__trigger" aria-expanded="false" aria-controls="p-3">
+                        <span>What does "unlimited" actually mean?</span>
+                        <svg class="ic" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                    </button>
+                </h3>
+                <div class="accordion__panel" id="p-3" hidden>
+                    <p>On Showroom Fresh: up to one foam wash per day, capped at 20 in a month. That is far more than anyone uses, but the cap keeps commercial fleets from buying a personal plan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-band">
+    <div class="wrap cta-band__inner">
+        <div>
+            <h2>Try a single wash first</h2>
+            <p>Book any one-off service, and if you subscribe within a week we credit what you paid toward your first month.</p>
+        </div>
+        <div class="cta-band__actions">
+            <a class="btn btn--accent" href="/book">
+                Book a wash
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </a>
+            <a class="btn btn--outline-light" href="/services">Browse services</a>
+        </div>
+    </div>
+</section>

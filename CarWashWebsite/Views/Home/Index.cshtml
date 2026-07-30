@@ -1,0 +1,511 @@
+@using System.Text.Json
+@model HomeViewModel
+
+@{
+    // Projected shape for the client-side picker — the entities have a Brand back-reference
+    // that would make System.Text.Json throw on the cycle.
+    var carData = Model.Brands.Select(b => new
+    {
+        name = b.Name,
+        models = b.Models.Select(m => new { name = m.Name, bodyType = m.BodyType }),
+    });
+}
+
+<section class="hero">
+    <div class="hero__bg" aria-hidden="true">
+        <span class="hero__blob hero__blob--1"></span>
+        <span class="hero__blob hero__blob--2"></span>
+        <span class="hero__grid"></span>
+    </div>
+
+    <div class="wrap hero__inner">
+        <div class="hero__copy">
+            <p class="eyebrow">
+                <svg class="ic" aria-hidden="true"><use href="#i-pin" /></svg>
+                Serving 18 localities across @Model.City
+            </p>
+            <h1>Car Care is an Art, we are the Artists.</h1>
+            <p class="hero__lede">
+                We don't just clean cars—we create lasting impressions. With precision, care, and premium detailing solutions, we transform every vehicle into a work of art.
+            </p>
+
+            <div class="hero__proof">
+                <div>
+                    <strong>4.8<span>/5</span></strong>
+                    <span class="stars" aria-label="4.8 out of 5">
+                        @for (var i = 0; i < 5; i++)
+                        {
+                            <svg class="ic" aria-hidden="true"><use href="#i-star" /></svg>
+                        }
+                    </span>
+                    <em>18,400+ reviews</em>
+                </div>
+                <div><strong>1.2 Lakh+</strong><em>cars washed since 2019</em></div>
+                <div><strong>70%</strong><em>of wash water recycled</em></div>
+            </div>
+        </div>
+
+        <div class="hero__card">
+            <form class="picker" id="carPicker" novalidate>
+                <h2>Get your exact price</h2>
+                <p class="picker__sub">Pick your car — prices change with body type, so we quote the real number.</p>
+
+                <label class="field">
+                    <span>Brand</span>
+                    <select id="pickBrand" required>
+                        <option value="">Select brand</option>
+                        @foreach (var brand in Model.Brands)
+                        {
+                            <option value="@brand.Name">@brand.Name</option>
+                        }
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Model</span>
+                    <select id="pickModel" required disabled>
+                        <option value="">Select brand first</option>
+                    </select>
+                </label>
+
+                <label class="field">
+                    <span>Service</span>
+                    <select id="pickService" required>
+                        @foreach (var service in Model.Services)
+                        {
+                            <option value="@service.Slug">@service.Name</option>
+                        }
+                    </select>
+                </label>
+
+                <div class="quote" id="quoteBox" hidden>
+                    <div class="quote__row">
+                        <div>
+                            <span class="quote__label" id="quoteLabel">Your price</span>
+                            <p class="quote__price">
+                                <span id="quotePrice">₹—</span>
+                                <s id="quoteList"></s>
+                                <b id="quoteSave"></b>
+                            </p>
+                        </div>
+                        <span class="badge badge--body" id="quoteBody">—</span>
+                    </div>
+                    <ul class="quote__meta">
+                        <li><svg class="ic" aria-hidden="true"><use href="#i-clock" /></svg><span id="quoteDuration">—</span></li>
+                        <li><svg class="ic" aria-hidden="true"><use href="#i-shield-tick" /></svg><span id="quoteWarranty">—</span></li>
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn btn--primary btn--block" id="pickerSubmit">
+                    Check price for free
+                    <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+                </button>
+                <p class="picker__foot">No sign-up, no card. We only call if you ask us to.</p>
+            </form>
+        </div>
+    </div>
+
+    <ul class="hero__strip">
+        <li><svg class="ic" aria-hidden="true"><use href="#i-van" /></svg> Free doorstep pickup &amp; drop</li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-camera" /></svg> Photo updates at every stage</li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-leaf" /></svg> RO water, biodegradable soaps</li>
+        <li><svg class="ic" aria-hidden="true"><use href="#i-rupee" /></svg> Pay only after you approve</li>
+    </ul>
+</section>
+
+@* ------------------------------------------------------------------ services *@
+<section class="section" id="services">
+    <div class="wrap">
+        <header class="section__head">
+            <div>
+                <p class="eyebrow">What we do</p>
+                <h2>Everything your car needs, minus the engine work</h2>
+            </div>
+            <a class="link-more" href="/services">All services <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg></a>
+        </header>
+
+        <div class="tile-grid">
+            @foreach (var service in Model.Services)
+            {
+                <a class="tile" href="/services/@service.Slug">
+                    @if (service.IsNew)
+                    {
+                        <span class="tile__flag tile__flag--new">New</span>
+                    }
+                    else if (service.IsBestseller)
+                    {
+                        <span class="tile__flag">Bestseller</span>
+                    }
+                    <span class="tile__icon" aria-hidden="true">
+                        <svg class="ic"><use href="#i-@service.Icon" /></svg>
+                    </span>
+                    <h3>@service.Name</h3>
+                    <p>@service.Tagline</p>
+                    <span class="tile__price">from ₹@service.StartingPrice.ToString("N0")</span>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ how it works *@
+<section class="section section--tint" id="how">
+    <div class="wrap">
+        <header class="section__head section__head--center">
+            <div>
+                <p class="eyebrow">How it works</p>
+                <h2>Four steps, and you are done</h2>
+                <p class="section__lede">Most customers finish booking in under a minute and never leave their sofa.</p>
+            </div>
+        </header>
+
+        <ol class="steps">
+            <li>
+                <span class="steps__num">1</span>
+                <h3>Pick your car and service</h3>
+                <p>Choose from 12 wash and detailing services. Prices are quoted per body type, so what you see is what you pay.</p>
+            </li>
+            <li>
+                <span class="steps__num">2</span>
+                <h3>We pick the car up — free</h3>
+                <p>A trained driver collects from your home or office on all jobs above ₹999. Or book the doorstep wash and nothing moves.</p>
+            </li>
+            <li>
+                <span class="steps__num">3</span>
+                <h3>Watch it happen</h3>
+                <p>Photos at wash, mid-detail and final inspection land on WhatsApp. Any extra work needs your tap to approve.</p>
+            </li>
+            <li>
+                <span class="steps__num">4</span>
+                <h3>Pay after you approve</h3>
+                <p>Inspect the car on delivery, then pay by UPI, card or cash. Not happy with a wash? Free rewash within 48 hours.</p>
+            </li>
+        </ol>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ offers carousel *@
+<section class="section" id="offers">
+    <div class="wrap">
+        <header class="section__head">
+            <div>
+                <p class="eyebrow">Limited time</p>
+                <h2>Get monsoon ready in @Model.City</h2>
+                <p class="section__lede">Our biggest discounts of the season, live until the rains stop.</p>
+            </div>
+            <div class="carousel__nav">
+                <button type="button" class="round-btn" data-carousel-prev="offers" aria-label="Previous offers">
+                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                </button>
+                <button type="button" class="round-btn" data-carousel-next="offers" aria-label="Next offers">
+                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="carousel" data-carousel="offers">
+            @foreach (var offer in Model.FeaturedOffers)
+            {
+                <article class="offer">
+                    <div class="offer__art offer__art--@offer.Icon" aria-hidden="true">
+                        <svg class="ic"><use href="#i-@offer.Icon" /></svg>
+                        <span class="offer__save">@offer.SavingsPercent% OFF</span>
+                    </div>
+                    <div class="offer__body">
+                        <h3>@offer.Name</h3>
+                        <p>@offer.Tagline</p>
+                        <ul class="ticks ticks--tight">
+                            @foreach (var item in offer.Includes.Take(3))
+                            {
+                                <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>@item.Text</li>
+                            }
+                        </ul>
+                        <footer>
+                            <p class="price">
+                                ₹@offer.StartingPrice.ToString("N0")
+                                <s>₹@offer.ListPrice.ToString("N0")</s>
+                            </p>
+                            <a class="btn btn--ghost btn--sm" href="/book?service=@offer.Slug">Book now</a>
+                        </footer>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ plans *@
+<section class="section section--dark" id="plans">
+    <div class="wrap">
+        <header class="section__head section__head--center">
+            <div>
+                <p class="eyebrow eyebrow--light">Subscriptions</p>
+                <h2>Stop booking washes one at a time</h2>
+                <p class="section__lede">A plan works out cheaper than your neighbourhood cleaner — and it actually shows up.</p>
+            </div>
+        </header>
+
+        <div class="plan-grid">
+            @foreach (var plan in Model.Plans)
+            {
+                <article class="plan @(plan.IsPopular ? "plan--popular" : "")">
+                    @if (plan.IsPopular)
+                    {
+                        <span class="plan__flag">Most popular</span>
+                    }
+                    <h3>@plan.Name</h3>
+                    <p class="plan__blurb">@plan.Blurb</p>
+                    <p class="plan__price">
+                        <span>₹@plan.PricePerMonth.ToString("N0")</span>
+                        <em>/month</em>
+                    </p>
+                    <p class="plan__list">
+                        <s>₹@plan.ListPricePerMonth.ToString("N0")</s>
+                        worth of services
+                    </p>
+                    <p class="plan__count">@plan.WashCount</p>
+                    <ul class="ticks">
+                        @foreach (var feature in plan.Features)
+                        {
+                            <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>@feature.Text</li>
+                        }
+                    </ul>
+                    <a class="btn @(plan.IsPopular ? "btn--primary" : "btn--outline-light") btn--block" href="/book?plan=@Uri.EscapeDataString(plan.Name)">
+                        Choose @plan.Name
+                    </a>
+                </article>
+            }
+        </div>
+        <p class="plan-note">Plans are month-to-month. Cancel any time from WhatsApp — no lock-in, no cancellation fee.</p>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ why us *@
+<section class="section" id="why">
+    <div class="wrap">
+        <header class="section__head section__head--center">
+            <div>
+                <p class="eyebrow">Why PitStop</p>
+                <h2>The boring things nobody else gets right</h2>
+            </div>
+        </header>
+
+        <div class="feature-grid">
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-droplet" /></svg></span>
+                <h3>Two-bucket, microfibre only</h3>
+                <p>Grit gets rinsed off the mitt between panels, and we never touch your paint with a brush. That is how swirl marks are avoided in the first place.</p>
+            </article>
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-shield-tick" /></svg></span>
+                <h3>Paint thickness measured</h3>
+                <p>Before any polishing or coating we gauge your clear coat and record it on the job card. If a panel is too thin to correct, we say so.</p>
+            </article>
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-camera" /></svg></span>
+                <h3>Photos, not promises</h3>
+                <p>Before, mid-job and after shots on WhatsApp with timestamps. Extra work is quoted with a photo and needs your approval to proceed.</p>
+            </article>
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-leaf" /></svg></span>
+                <h3>Actually water-efficient</h3>
+                <p>Our studios reclaim about 70% of wash water, and the doorstep waterless wash uses under 2 litres per car. Society rules stay happy.</p>
+            </article>
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-rupee" /></svg></span>
+                <h3>One price, written down</h3>
+                <p>No consumables charge, no GST surprise, no "sir, the pad was extra". The quote you accept is the bill you sign.</p>
+            </article>
+            <article class="feature">
+                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-shield" /></svg></span>
+                <h3>Warranties on paper</h3>
+                <p>Ceramic coating for 3 years, PPF for 5, anti-rust for 1, polish gloss for 3 months. Claim it at any PitStop Autocare studio in Pune.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ pricing table *@
+<section class="section section--tint" id="pricing">
+    <div class="wrap">
+        <header class="section__head">
+            <div>
+                <p class="eyebrow">Price list</p>
+                <h2>Car wash prices in @Model.City</h2>
+                <p class="section__lede">Starting prices below are for hatchbacks. Switch body type to see your number.</p>
+            </div>
+            <div class="segmented" role="tablist" aria-label="Body type">
+                <button type="button" role="tab" class="is-active" data-body="Hatchback" aria-selected="true">Hatchback</button>
+                <button type="button" role="tab" data-body="Sedan" aria-selected="false">Sedan</button>
+                <button type="button" role="tab" data-body="SUV" aria-selected="false">SUV</button>
+                <button type="button" role="tab" data-body="Luxury" aria-selected="false">Luxury</button>
+            </div>
+        </header>
+
+        <div class="table-scroll">
+            <table class="price-table" id="priceTable">
+                <thead>
+                    <tr>
+                        <th scope="col">Service</th>
+                        <th scope="col">Time taken</th>
+                        <th scope="col">Warranty</th>
+                        <th scope="col" class="num">Starting price</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var service in Model.Services)
+                    {
+                        <tr data-base="@service.StartingPrice" data-list="@service.ListPrice">
+                            <th scope="row">
+                                <span class="price-table__name">
+                                    <svg class="ic" aria-hidden="true"><use href="#i-@service.Icon" /></svg>
+                                    <span>
+                                        @service.Name
+                                        <em>@service.Tagline</em>
+                                    </span>
+                                </span>
+                            </th>
+                            <td>@service.Duration</td>
+                            <td class="muted">@service.Warranty</td>
+                            <td class="num">
+                                <span class="price-table__price" data-price>₹@service.StartingPrice.ToString("N0")</span>
+                                <s data-list-price>₹@service.ListPrice.ToString("N0")</s>
+                                <span class="save">@service.SavingsPercent% off</span>
+                            </td>
+                            <td class="num">
+                                <a class="btn btn--ghost btn--xs" href="/book?service=@service.Slug">Book</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p class="fineprint">All prices include GST. Heavily soiled or oversized vehicles may attract a surcharge, quoted with a photo before work starts.</p>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ testimonials *@
+<section class="section" id="reviews">
+    <div class="wrap">
+        <header class="section__head">
+            <div>
+                <p class="eyebrow">Reviews</p>
+                <h2>4.8 out of 5, from 18,400 washes</h2>
+            </div>
+            <div class="carousel__nav">
+                <button type="button" class="round-btn" data-carousel-prev="reviews" aria-label="Previous reviews">
+                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-left" /></svg>
+                </button>
+                <button type="button" class="round-btn" data-carousel-next="reviews" aria-label="Next reviews">
+                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="carousel" data-carousel="reviews">
+            @foreach (var review in Model.Testimonials)
+            {
+                <figure class="review">
+                    <span class="stars stars--sm" aria-label="@review.Rating out of 5">
+                        @for (var i = 0; i < review.Rating; i++)
+                        {
+                            <svg class="ic" aria-hidden="true"><use href="#i-star" /></svg>
+                        }
+                    </span>
+                    <blockquote>@review.Quote</blockquote>
+                    <figcaption>
+                        <span class="avatar" aria-hidden="true">@review.Initials</span>
+                        <span>
+                            <strong>@review.Author</strong>
+                            <em>@review.Car · @review.Locality</em>
+                        </span>
+                    </figcaption>
+                </figure>
+            }
+        </div>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ coverage *@
+<section class="section section--tint" id="areas">
+    <div class="wrap coverage">
+        <div class="coverage__copy">
+            <p class="eyebrow">Coverage</p>
+            <h2>14 studios, 30+ doorstep vans</h2>
+            <p>
+                If you are anywhere inside the PMC or PCMC limits, we reach you. Pick your locality
+                and we will route you to the nearest studio with an open bay.
+            </p>
+            <a class="btn btn--primary" href="/book">
+                Book in your area
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </a>
+        </div>
+        <ul class="chips">
+            @foreach (var locality in Model.Localities)
+            {
+                <li><a href="/book?locality=@Uri.EscapeDataString(locality)">@locality</a></li>
+            }
+        </ul>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ faq *@
+<section class="section" id="faq">
+    <div class="wrap faq-wrap">
+        <header class="section__head section__head--center">
+            <div>
+                <p class="eyebrow">FAQs</p>
+                <h2>Questions we get every day</h2>
+            </div>
+        </header>
+
+        <div class="accordion" id="faqAccordion">
+            @for (var i = 0; i < Model.Faqs.Count; i++)
+            {
+                var faq = Model.Faqs[i];
+                <div class="accordion__item">
+                    <h3>
+                        <button type="button" class="accordion__trigger" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="faq-panel-@i">
+                            <span>@faq.Question</span>
+                            <svg class="ic" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                        </button>
+                    </h3>
+                    <div class="accordion__panel" id="faq-panel-@i" @(i == 0 ? "" : "hidden")>
+                        <p>@faq.Answer</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@* ------------------------------------------------------------------ closing CTA *@
+<section class="cta-band">
+    <div class="wrap cta-band__inner">
+        <div>
+            <h2>Your car is 40 minutes away from looking new</h2>
+            <p>Book a slot today and get 20% off with code <strong>PITSTOP20</strong>. We will call within 15 minutes to confirm.</p>
+        </div>
+        <div class="cta-band__actions">
+            <a class="btn btn--accent" href="/book">
+                Book a wash
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </a>
+            <a class="btn btn--outline-light" href="tel:+918999229855">
+                <svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg>
+                Call 89992 29855
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script type="application/json" id="carData">
+        @Html.Raw(JsonSerializer.Serialize(carData))
+    </script>
+    <script type="application/json" id="bodyMultipliers">
+        @Html.Raw(JsonSerializer.Serialize(CatalogService.BodyTypeMultipliers))
+    </script>
+}

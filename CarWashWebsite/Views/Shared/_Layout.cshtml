@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "PitStop Autocare — Car Wash & Detailing in Pune")</title>
+    <meta name="description" content="Car wash, interior detailing, ceramic coating and monthly wash plans in Pune. Free doorstep pickup, RO water, written warranties. Book in 60 seconds." />
+    <meta name="theme-color" content="#062a35" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body data-nav="@ViewData["ActiveNav"]">
+    <partial name="_Icons" />
+
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <div class="offerbar">
+        <div class="wrap offerbar__inner">
+            <span class="offerbar__pill">NEW</span>
+            <p>
+                Flat <strong>20% off</strong> your first wash with code
+                <button type="button" class="code-copy" data-code="PITSTOP20">PITSTOP20 <span aria-hidden="true">⧉</span></button>
+            </p>
+            <span class="offerbar__aside">Monsoon underbody flush free above ₹1,999</span>
+        </div>
+    </div>
+
+    <header class="site-header" id="siteHeader">
+        <div class="wrap site-header__inner">
+            <a class="brand" href="/" aria-label="PitStop Autocare home">
+                <span class="brand__mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32"><use href="#i-droplet" /></svg>
+                </span>
+                <span class="brand__text">
+                    <strong>PitStop Autocare</strong>
+                    <em>Complete Car Care</em>
+                </span>
+            </a>
+
+            <div class="city">
+                <button type="button" class="city-select" id="citySelect" aria-haspopup="listbox" aria-expanded="false">
+                    <svg class="ic" aria-hidden="true"><use href="#i-pin" /></svg>
+                    <span id="cityLabel">Pune</span>
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-down" /></svg>
+                </button>
+                <ul class="city-menu" id="cityMenu" role="listbox" hidden>
+                    <li role="option" tabindex="0" data-city="Pune" aria-selected="true">Pune</li>
+                    <li role="option" tabindex="0" data-city="Mumbai">Mumbai</li>
+                    <li role="option" tabindex="0" data-city="Nashik">Nashik</li>
+                    <li class="city-menu__soon" aria-disabled="true">Nagpur — coming soon</li>
+                </ul>
+            </div>
+
+            <nav class="site-nav" id="siteNav" aria-label="Main">
+                <a href="/services" data-nav="services">Services</a>
+                <a href="/plans" data-nav="plans">Wash Plans</a>
+                <a href="/#how" data-nav="how">How it works</a>
+                <a href="/#pricing" data-nav="pricing">Pricing</a>
+                <a href="/#faq" data-nav="faq">FAQs</a>
+            </nav>
+
+            <div class="site-header__cta">
+                <a class="link-phone" href="tel:+918999229855">
+                    <svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg>
+                    <span>89992 29855</span>
+                </a>
+                <a class="btn btn--primary btn--sm" href="/book">Book a wash</a>
+            </div>
+
+            <button type="button" class="nav-toggle" id="navToggle" aria-controls="siteNav" aria-expanded="false" aria-label="Open menu">
+                <svg class="ic" aria-hidden="true"><use href="#i-menu" /></svg>
+            </button>
+        </div>
+    </header>
+
+    <main id="main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="site-footer__top">
+                <div class="site-footer__brand">
+                    <a class="brand brand--light" href="/">
+                        <span class="brand__mark" aria-hidden="true">
+                            <svg viewBox="0 0 32 32"><use href="#i-droplet" /></svg>
+                        </span>
+                        <span class="brand__text">
+                            <strong>PitStop Autocare</strong>
+                            <em>Car Spa &amp; Detailing</em>
+                        </span>
+                    </a>
+                    <p>
+                        14 detailing studios and 30+ doorstep vans across Pune. RO-treated water,
+                        biodegradable shampoos, and a written warranty on every coating we apply.
+                    </p>
+                    <div class="site-footer__contact">
+                        <a href="tel:+918999229855"><svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg> +91 89992 29855</a>
+                        <a href="https://wa.me/918999229855" rel="noopener"><svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg> WhatsApp us</a>
+                        <span><svg class="ic" aria-hidden="true"><use href="#i-clock" /></svg> 7:00 AM – 9:00 PM, all week</span>
+                    </div>
+                </div>
+
+                <div class="site-footer__links">
+                    <div>
+                        <h3>Services</h3>
+                        <ul>
+                            <li><a href="/services/express-wash">Express Body Wash</a></li>
+                            <li><a href="/services/foam-wash">Snow Foam Wash</a></li>
+                            <li><a href="/services/interior-detailing">Interior Deep Clean</a></li>
+                            <li><a href="/services/ceramic-coating">Ceramic Coating</a></li>
+                            <li><a href="/services/rubbing-polishing">Rubbing &amp; Polishing</a></li>
+                            <li><a href="/services">View all 12 services</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Popular areas</h3>
+                        <ul>
+                            <li><a href="/book?locality=Baner">Car wash in Baner</a></li>
+                            <li><a href="/book?locality=Hinjewadi">Car wash in Hinjewadi</a></li>
+                            <li><a href="/book?locality=Kothrud">Car wash in Kothrud</a></li>
+                            <li><a href="/book?locality=Viman%20Nagar">Car wash in Viman Nagar</a></li>
+                            <li><a href="/book?locality=Kharadi">Car wash in Kharadi</a></li>
+                            <li><a href="/book?locality=Wakad">Car wash in Wakad</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Company</h3>
+                        <ul>
+                            <li><a href="/#how">How it works</a></li>
+                            <li><a href="/plans">Wash plans</a></li>
+                            <li><a href="/#reviews">Customer reviews</a></li>
+                            <li><a href="/#faq">FAQs</a></li>
+                            <li><a href="/book">Book a wash</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="site-footer__bottom">
+                <p>© 2019–@DateTime.Now.Year PitStop Autocare Pvt. Ltd. · Baner Road, Pune 411045</p>
+                <p class="site-footer__note">
+                    Prices shown are starting prices for hatchbacks and include GST. Final quote depends on your car and its condition.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <a class="wa-float" href="https://wa.me/918999229855" rel="noopener" aria-label="Chat on WhatsApp">
+        <svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg>
+    </a>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

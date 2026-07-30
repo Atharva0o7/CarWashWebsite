@@ -1,0 +1,87 @@
+@model List<Service>
+
+<section class="page-head">
+    <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+            <span aria-current="page">Services</span>
+        </nav>
+        <h1>All car wash &amp; detailing services</h1>
+        <p>
+            Twelve services, from a 40-minute express wash to a three-day paint protection film job.
+            Starting prices are for hatchbacks and include GST.
+        </p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap">
+        <div class="card-grid">
+            @foreach (var service in Model)
+            {
+                <article class="svc-card">
+                    <header>
+                        <span class="svc-card__icon" aria-hidden="true">
+                            <svg class="ic"><use href="#i-@service.Icon" /></svg>
+                        </span>
+                        <div>
+                            <h2>
+                                <a href="/services/@service.Slug">@service.Name</a>
+                                @if (service.IsNew)
+                                {
+                                    <span class="pill pill--new">New</span>
+                                }
+                                else if (service.IsBestseller)
+                                {
+                                    <span class="pill">Bestseller</span>
+                                }
+                            </h2>
+                            <p>@service.Tagline</p>
+                        </div>
+                    </header>
+
+                    <ul class="ticks ticks--tight">
+                        @foreach (var item in service.Includes.Take(4))
+                        {
+                            <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>@item.Text</li>
+                        }
+                    </ul>
+
+                    <ul class="svc-card__meta">
+                        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-clock" /></svg>@service.Duration</li>
+                        <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-shield-tick" /></svg>@service.Warranty</li>
+                    </ul>
+
+                    <footer>
+                        <p class="price">
+                            ₹@service.StartingPrice.ToString("N0")
+                            <s>₹@service.ListPrice.ToString("N0")</s>
+                            <span class="save">@service.SavingsPercent% off</span>
+                        </p>
+                        <div class="svc-card__actions">
+                            <a class="btn btn--ghost btn--sm" href="/services/@service.Slug">Details</a>
+                            <a class="btn btn--primary btn--sm" href="/book?service=@service.Slug">Book</a>
+                        </div>
+                    </footer>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="cta-band">
+    <div class="wrap cta-band__inner">
+        <div>
+            <h2>Not sure which one your car needs?</h2>
+            <p>Send us a photo on WhatsApp. We will tell you what is worth doing and what is not.</p>
+        </div>
+        <div class="cta-band__actions">
+            <a class="btn btn--accent" href="https://wa.me/918999229855" rel="noopener">
+                <svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg>
+                Ask on WhatsApp
+            </a>
+            <a class="btn btn--outline-light" href="/book">Book a wash</a>
+        </div>
+    </div>
+</section>

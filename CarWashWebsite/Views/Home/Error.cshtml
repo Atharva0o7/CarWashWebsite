@@ -1,0 +1,26 @@
+@model int
+
+<section class="section confirm">
+    <div class="wrap confirm__inner">
+        <p class="eyebrow">Error @Model</p>
+        <h1>@(Model == 404 ? "That page went through the wash." : "Something went wrong at our end.")</h1>
+        <p class="confirm__lede">
+            @if (Model == 404)
+            {
+                <text>The link is broken or the page moved. The services below are all still here.</text>
+            }
+            else
+            {
+                <text>We have logged it. Try again in a moment, or just call us and we will book it for you.</text>
+            }
+        </p>
+        <div class="confirm__actions">
+            <a class="btn btn--primary" href="/">Back to home</a>
+            <a class="btn btn--ghost" href="/services">Browse services</a>
+            <a class="btn btn--ghost" href="tel:+918999229855">
+                <svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg>
+                89992 29855
+            </a>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,230 @@
+@using System.Text.Json
+@model BookingPageViewModel
+
+@{
+    var carData = Model.Brands.Select(b => new
+    {
+        name = b.Name,
+        models = b.Models.Select(m => new { name = m.Name, bodyType = m.BodyType }),
+    });
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<section class="page-head">
+    <div class="wrap">
+        <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/">Home</a>
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+            <span aria-current="page">Book</span>
+        </nav>
+        <h1>Book your wash</h1>
+        <p>Takes about a minute. We call within 15 minutes to confirm — no payment until the work is approved.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="wrap book">
+        <form class="book__form" method="post" action="/book" id="bookForm" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            @if (ViewData["PlanInterest"] is string planName)
+            {
+                <p class="alert alert--info">
+                    <strong>@planName</strong> noted. Book this first wash as usual — we will set the
+                    plan up on the confirmation call and credit today's payment toward month one.
+                </p>
+            }
+
+            <fieldset>
+                <legend><span class="legend-num">1</span> Your car</legend>
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Brand</span>
+                        <select asp-for="Form.CarBrand" id="bookBrand" required>
+                            <option value="">Select brand</option>
+                            @foreach (var brand in Model.Brands)
+                            {
+                                <option value="@brand.Name">@brand.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Form.CarBrand" class="field__error"></span>
+                    </label>
+
+                    <label class="field">
+                        <span>Model</span>
+                        <select asp-for="Form.CarModel" id="bookModel" required>
+                            <option value="">Select brand first</option>
+                        </select>
+                        <span asp-validation-for="Form.CarModel" class="field__error"></span>
+                    </label>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend><span class="legend-num">2</span> Service</legend>
+                <div class="radio-cards" id="serviceCards">
+                    @foreach (var service in Model.Services)
+                    {
+                        <label class="radio-card">
+                            <input type="radio" asp-for="Form.ServiceSlug" value="@service.Slug"
+                                   data-base="@service.StartingPrice" data-duration="@service.Duration" />
+                            <span class="radio-card__body">
+                                <span class="radio-card__icon" aria-hidden="true">
+                                    <svg class="ic"><use href="#i-@service.Icon" /></svg>
+                                </span>
+                                <span class="radio-card__text">
+                                    <strong>@service.Name</strong>
+                                    <em>@service.Tagline</em>
+                                </span>
+                                <span class="radio-card__price">
+                                    from ₹<span data-service-price>@service.StartingPrice.ToString("N0")</span>
+                                </span>
+                            </span>
+                        </label>
+                    }
+                </div>
+                <span asp-validation-for="Form.ServiceSlug" class="field__error"></span>
+            </fieldset>
+
+            <fieldset>
+                <legend><span class="legend-num">3</span> Where and when</legend>
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Locality</span>
+                        <select asp-for="Form.Locality" required>
+                            <option value="">Select your area</option>
+                            @foreach (var locality in Model.Localities)
+                            {
+                                <option value="@locality">@locality</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Form.Locality" class="field__error"></span>
+                    </label>
+
+                    <label class="field">
+                        <span>Preferred date</span>
+                        <input asp-for="Form.PreferredDate" type="date" min="@today.ToString("yyyy-MM-dd")" required />
+                        <span asp-validation-for="Form.PreferredDate" class="field__error"></span>
+                    </label>
+                </div>
+
+                <div class="field">
+                    <span class="field__label">Time slot</span>
+                    <div class="chip-radios">
+                        @foreach (var slot in Model.TimeSlots)
+                        {
+                            <label class="chip-radio">
+                                <input type="radio" asp-for="Form.PreferredSlot" value="@slot" />
+                                <span>@slot</span>
+                            </label>
+                        }
+                    </div>
+                    <span asp-validation-for="Form.PreferredSlot" class="field__error"></span>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend><span class="legend-num">4</span> Contact</legend>
+                <div class="grid-2">
+                    <label class="field">
+                        <span>Your name</span>
+                        <input asp-for="Form.Name" placeholder="Rohit Deshmukh" autocomplete="name" required />
+                        <span asp-validation-for="Form.Name" class="field__error"></span>
+                    </label>
+
+                    <label class="field">
+                        <span>Mobile number</span>
+                        <input asp-for="Form.Phone" type="tel" inputmode="numeric" maxlength="10"
+                               placeholder="9876543210" autocomplete="tel-national" required />
+                        <span asp-validation-for="Form.Phone" class="field__error"></span>
+                    </label>
+                </div>
+
+                <label class="field">
+                    <span>Email <em>(optional)</em></span>
+                    <input asp-for="Form.Email" type="email" placeholder="you@example.com" autocomplete="email" />
+                    <span asp-validation-for="Form.Email" class="field__error"></span>
+                </label>
+
+                <label class="field">
+                    <span>Anything we should know? <em>(optional)</em></span>
+                    <textarea asp-for="Form.Notes" rows="3"
+                              placeholder="Pet hair on the back seat, scratch on the left door, gate code 4421…"></textarea>
+                    <span asp-validation-for="Form.Notes" class="field__error"></span>
+                </label>
+            </fieldset>
+
+            <button type="submit" class="btn btn--primary btn--lg btn--block" id="bookSubmit">
+                Confirm booking
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </button>
+            <p class="book__fineprint">
+                By booking you agree to our rewash and cancellation terms. We never share your number.
+            </p>
+        </form>
+
+        <aside class="book__summary" id="bookSummary">
+            <h2>Your booking</h2>
+
+            <dl class="summary">
+                <div>
+                    <dt>Car</dt>
+                    <dd id="sumCar">—</dd>
+                </div>
+                <div>
+                    <dt>Body type</dt>
+                    <dd id="sumBody">—</dd>
+                </div>
+                <div>
+                    <dt>Service</dt>
+                    <dd id="sumService">—</dd>
+                </div>
+                <div>
+                    <dt>When</dt>
+                    <dd id="sumWhen">—</dd>
+                </div>
+                <div>
+                    <dt>Where</dt>
+                    <dd id="sumWhere">—</dd>
+                </div>
+            </dl>
+
+            <div class="summary__total">
+                <span>Estimated total</span>
+                <strong id="sumTotal">₹—</strong>
+            </div>
+            <p class="summary__note" id="sumNote">
+                Pick your car to see the exact price. Prices scale with body type — SUVs cost more to wash than hatchbacks.
+            </p>
+
+            <ul class="ticks ticks--tight">
+                <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>Pay after the work is approved</li>
+                <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>Free reschedule up to 4 hours before</li>
+                <li><svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>Photo updates on WhatsApp</li>
+            </ul>
+
+            <a class="summary__help" href="tel:+918999229855">
+                <svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg>
+                Rather book by phone? 89992 29855
+            </a>
+        </aside>
+    </div>
+</section>
+
+@section Scripts {
+    <script type="application/json" id="carData">
+        @Html.Raw(JsonSerializer.Serialize(carData))
+    </script>
+    <script type="application/json" id="bodyMultipliers">
+        @Html.Raw(JsonSerializer.Serialize(CatalogService.BodyTypeMultipliers))
+    </script>
+    <script type="application/json" id="preselect">
+        @Html.Raw(JsonSerializer.Serialize(new
+        {
+            brand = Model.Form.CarBrand,
+            model = Model.Form.CarModel,
+        }))
+    </script>
+}
