@@ -9,6 +9,10 @@ public class WashPlan
     public int PricePerMonth { get; set; }
     public int ListPricePerMonth { get; set; }
     public string WashCount { get; set; } = "";
+
+    /// <summary>Numeric allowance per month, used to seed a subscription's wash quota.</summary>
+    public int WashesIncluded { get; set; }
+
     public bool IsPopular { get; set; }
     public int SortOrder { get; set; }
 

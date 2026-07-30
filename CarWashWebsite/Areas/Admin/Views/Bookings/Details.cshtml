@@ -1,0 +1,80 @@
+@model Booking
+
+<header class="adm-head">
+    <div>
+        <nav class="crumbs" aria-label="Breadcrumb">
+            <a href="/admin">Dashboard</a>
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+            <a href="/admin/bookings">Bookings</a>
+            <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+            <span aria-current="page">@Model.Reference</span>
+        </nav>
+        <h1 class="mono">@Model.Reference</h1>
+        <p class="muted">
+            Booked @Model.CreatedAt.ToLocalTime().ToString("d MMM yyyy 'at' h:mm tt")
+            · <span class="tag tag--@Model.Status.ToString().ToLowerInvariant()">@Model.Status</span>
+        </p>
+    </div>
+    <div class="adm-head__tools">
+        <a class="btn btn--ghost btn--sm" href="tel:+91@Model.Phone">
+            <svg class="ic" aria-hidden="true"><use href="#i-phone" /></svg> Call customer
+        </a>
+        <a class="btn btn--ghost btn--sm"
+           href="https://wa.me/91@Model.Phone?text=@Uri.EscapeDataString($"Hi {Model.CustomerName}, about your PitStop booking {Model.Reference}")"
+           rel="noopener">
+            <svg class="ic" aria-hidden="true"><use href="#i-whatsapp" /></svg> WhatsApp
+        </a>
+    </div>
+</header>
+
+<div class="adm-cols">
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Job</h2></header>
+        <dl class="adm-dl">
+            <div><dt>Service</dt><dd>@(Model.Service?.Name ?? "—")</dd></div>
+            <div><dt>Date</dt><dd>@Model.PreferredDate.ToString("dddd, d MMMM yyyy")</dd></div>
+            <div><dt>Slot</dt><dd>@Model.PreferredSlot</dd></div>
+            <div><dt>Locality</dt><dd>@Model.Locality, Pune</dd></div>
+            <div><dt>Quoted price</dt><dd class="mono">₹@Model.QuotedPrice.ToString("N0")</dd></div>
+            <div><dt>Duration</dt><dd>@(Model.Service?.Duration ?? "—")</dd></div>
+        </dl>
+    </section>
+
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Customer &amp; car</h2></header>
+        <dl class="adm-dl">
+            <div><dt>Name</dt><dd>@Model.CustomerName</dd></div>
+            <div><dt>Phone</dt><dd class="mono">@Model.Phone</dd></div>
+            <div><dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(Model.Email) ? "—" : Model.Email)</dd></div>
+            <div><dt>Car</dt><dd>@Model.CarBrand @Model.CarModel</dd></div>
+            <div><dt>Body type</dt><dd><span class="badge badge--body">@Model.BodyType</span></dd></div>
+        </dl>
+    </section>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Notes))
+{
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Customer note</h2></header>
+        <p>@Model.Notes</p>
+    </section>
+}
+
+<section class="adm-panel">
+    <header class="adm-panel__head"><h2>Move this booking</h2></header>
+    <form class="adm-status-row" method="post" action="/admin/bookings/@Model.Id/status">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="returnUrl" value="/admin/bookings/@Model.Id" />
+        @foreach (var s in Enum.GetValues<BookingStatus>())
+        {
+            <button type="submit" name="status" value="@s"
+                    class="btn btn--sm @(Model.Status == s ? "btn--accent" : "btn--ghost")"
+                    disabled="@(Model.Status == s)">
+                @s
+            </button>
+        }
+    </form>
+    <p class="muted adm-status-row__note">
+        The customer is not notified automatically — call or WhatsApp them after changing this.
+    </p>
+</section>

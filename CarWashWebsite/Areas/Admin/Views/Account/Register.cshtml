@@ -1,0 +1,101 @@
+@model RegisterAdminInput
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin adm-login-page">
+    <partial name="/Views/Shared/_Icons.cshtml" />
+
+    <main class="adm-login">
+        <form class="adm-login__card adm-login__card--wide" method="post" action="/admin/register">
+            @Html.AntiForgeryToken()
+
+            <span class="brand__mark adm-login__mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><use href="#i-tyre" /></svg>
+            </span>
+
+            <h1>Add an admin</h1>
+
+            @if (Model.IsFirstRun)
+            {
+                <p class="adm-login__sub">
+                    No admin account exists yet, so this first one needs no approval.
+                    Once it is created this page will require an existing admin to authorise.
+                </p>
+            }
+            else
+            {
+                <p class="adm-login__sub">
+                    An existing admin must approve this. Enter their credentials below —
+                    they are checked, not stored.
+                </p>
+            }
+
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            <fieldset class="adm-fieldset">
+                <legend>New account</legend>
+
+                <label class="field">
+                    <span>Full name</span>
+                    <input asp-for="FullName" placeholder="Atharva Walke" autocomplete="off" />
+                    <span asp-validation-for="FullName" class="field__error"></span>
+                </label>
+
+                <label class="field">
+                    <span>Email</span>
+                    <input asp-for="Email" type="email" placeholder="you@pitstop.in" autocomplete="off" />
+                    <span asp-validation-for="Email" class="field__error"></span>
+                </label>
+
+                <label class="field">
+                    <span>Password</span>
+                    <input asp-for="Password" type="password" autocomplete="new-password"
+                           placeholder="10+ chars, upper + lower + digit" />
+                    <span asp-validation-for="Password" class="field__error"></span>
+                </label>
+            </fieldset>
+
+            @if (!Model.IsFirstRun)
+            {
+                <fieldset class="adm-fieldset adm-fieldset--auth">
+                    <legend>Authorised by</legend>
+
+                    <label class="field">
+                        <span>Existing admin email</span>
+                        <input asp-for="AuthorisingEmail" type="email"
+                               placeholder="admin@pitstop.in" autocomplete="off" />
+                        <span asp-validation-for="AuthorisingEmail" class="field__error"></span>
+                    </label>
+
+                    <label class="field">
+                        <span>Their password</span>
+                        <input asp-for="AuthorisingPassword" type="password" autocomplete="off" />
+                        <span asp-validation-for="AuthorisingPassword" class="field__error"></span>
+                    </label>
+                </fieldset>
+            }
+
+            <button type="submit" class="btn btn--accent btn--block btn--lg">
+                Create admin
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </button>
+
+            <p class="adm-login__foot">
+                <a href="/admin/login">Back to sign in</a>
+            </p>
+        </form>
+    </main>
+</body>
+</html>

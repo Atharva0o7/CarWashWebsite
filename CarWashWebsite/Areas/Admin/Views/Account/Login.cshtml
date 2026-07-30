@@ -1,0 +1,71 @@
+@model LoginInput
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@ViewData["Title"]</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin adm-login-page">
+    <partial name="/Views/Shared/_Icons.cshtml" />
+
+    <main class="adm-login">
+        <form class="adm-login__card" method="post" action="/admin/login">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+
+            <span class="brand__mark adm-login__mark" aria-hidden="true">
+                <svg viewBox="0 0 32 32"><use href="#i-tyre" /></svg>
+            </span>
+
+            <h1>PitStop Control Room</h1>
+            <p class="adm-login__sub">Staff access only. This page is not reachable from the public site.</p>
+
+            @if (TempData["Flash"] is string flash)
+            {
+                <div class="adm-flash">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>
+                    @flash
+                </div>
+            }
+
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            <label class="field">
+                <span>Email</span>
+                <input asp-for="Email" type="email" autocomplete="username"
+                       placeholder="you@pitstop.in" autofocus />
+                <span asp-validation-for="Email" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <input asp-for="Password" type="password" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field__error"></span>
+            </label>
+
+            <label class="adm-check">
+                <input asp-for="RememberMe" type="checkbox" />
+                <span>Keep me signed in on this machine</span>
+            </label>
+
+            <button type="submit" class="btn btn--accent btn--block btn--lg">
+                Sign in
+                <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            </button>
+
+            <p class="adm-login__foot">
+                <a href="/admin/register">Add an admin account</a>
+            </p>
+        </form>
+    </main>
+</body>
+</html>

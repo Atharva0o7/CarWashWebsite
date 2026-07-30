@@ -1,0 +1,171 @@
+@model BookingListViewModel
+@{
+    var f = Model.Filter;
+    var exportQuery = QueryHelpers(f);
+    var here = Context.Request.Path + Context.Request.QueryString;
+}
+
+@functions {
+    static string QueryHelpers(BookingFilter f)
+    {
+        var parts = f.ToRouteValues(page: 1)
+                     .Where(kv => kv.Key != "page" && kv.Value is not null)
+                     .Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value!)}");
+        var q = string.Join("&", parts);
+        return q.Length == 0 ? "" : "?" + q;
+    }
+}
+
+<header class="adm-head">
+    <div>
+        <p class="eyebrow">Queue</p>
+        <h1>Bookings</h1>
+        <p class="muted">
+            @Model.TotalCount booking@(Model.TotalCount == 1 ? "" : "s")
+            worth <strong class="mono">₹@Model.TotalValue.ToString("N0")</strong>
+            @(f.IsFiltered ? "matching this filter" : "in total")
+        </p>
+    </div>
+    <div class="adm-head__tools">
+        <a class="btn btn--accent btn--sm" href="/admin/bookings/export.xlsx@exportQuery">
+            <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            Export Excel
+        </a>
+    </div>
+</header>
+
+<form class="adm-filters" method="get" action="/admin/bookings">
+    <label class="field">
+        <span>Search</span>
+        <input type="search" name="q" value="@f.Q" placeholder="Reference, name, phone, car" />
+    </label>
+
+    <label class="field">
+        <span>Status</span>
+        <select name="status">
+            <option value="">Any status</option>
+            @foreach (var s in Enum.GetValues<BookingStatus>())
+            {
+                <option value="@s" selected="@(f.Status == s)">@s</option>
+            }
+        </select>
+    </label>
+
+    <label class="field">
+        <span>Service</span>
+        <select name="serviceSlug">
+            <option value="">Any service</option>
+            @foreach (var s in Model.Services)
+            {
+                <option value="@s.Slug" selected="@(f.ServiceSlug == s.Slug)">@s.Name</option>
+            }
+        </select>
+    </label>
+
+    <label class="field">
+        <span>Locality</span>
+        <select name="locality">
+            <option value="">Any area</option>
+            @foreach (var l in Model.Localities)
+            {
+                <option value="@l" selected="@(f.Locality == l)">@l</option>
+            }
+        </select>
+    </label>
+
+    <label class="field">
+        <span>From</span>
+        <input type="date" name="from" value="@(f.From?.ToString("yyyy-MM-dd"))" />
+    </label>
+
+    <label class="field">
+        <span>To</span>
+        <input type="date" name="to" value="@(f.To?.ToString("yyyy-MM-dd"))" />
+    </label>
+
+    <div class="adm-filters__actions">
+        <button type="submit" class="btn btn--primary btn--sm">Filter</button>
+        @if (f.IsFiltered)
+        {
+            <a class="btn btn--ghost btn--sm" href="/admin/bookings">Clear</a>
+        }
+    </div>
+</form>
+
+@if (Model.Bookings.Count == 0)
+{
+    <section class="adm-panel">
+        <p class="adm-empty">
+            No bookings match. @(f.IsFiltered ? "Try widening the filter." : "None have come in yet.")
+        </p>
+    </section>
+}
+else
+{
+    <section class="adm-panel adm-panel--flush">
+        <div class="table-scroll">
+            <table class="adm-table adm-table--rows">
+                <thead>
+                    <tr>
+                        <th scope="col">Reference</th>
+                        <th scope="col">When</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Car</th>
+                        <th scope="col">Service</th>
+                        <th scope="col">Area</th>
+                        <th scope="col" class="num">Price</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Move to</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Bookings)
+                    {
+                        <tr>
+                            <td><a class="mono" href="/admin/bookings/@b.Id">@b.Reference</a></td>
+                            <td>@b.PreferredDate.ToString("ddd d MMM")<em class="sub">@b.PreferredSlot</em></td>
+                            <td>@b.CustomerName<em class="sub mono">@b.Phone</em></td>
+                            <td>@b.CarBrand @b.CarModel<em class="sub">@b.BodyType</em></td>
+                            <td>@(b.Service?.Name ?? "—")</td>
+                            <td>@b.Locality</td>
+                            <td class="num mono">₹@b.QuotedPrice.ToString("N0")</td>
+                            <td><span class="tag tag--@b.Status.ToString().ToLowerInvariant()">@b.Status</span></td>
+                            <td>
+                                <form class="status-form" method="post" action="/admin/bookings/@b.Id/status">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="returnUrl" value="@here" />
+                                    <select name="status" onchange="this.form.submit()" aria-label="Change status for @b.Reference">
+                                        @foreach (var s in Enum.GetValues<BookingStatus>())
+                                        {
+                                            <option value="@s" selected="@(b.Status == s)">@s</option>
+                                        }
+                                    </select>
+                                    <noscript><button type="submit" class="btn btn--ghost btn--xs">Go</button></noscript>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="adm-pager" aria-label="Pagination">
+            @if (f.Page > 1)
+            {
+                <a class="btn btn--ghost btn--sm" asp-all-route-data="@f.ToRouteValues(f.Page - 1)" asp-action="Index">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-left" /></svg> Previous
+                </a>
+            }
+            <span class="adm-pager__label">Page @f.Page of @Model.TotalPages</span>
+            @if (f.Page < Model.TotalPages)
+            {
+                <a class="btn btn--ghost btn--sm" asp-all-route-data="@f.ToRouteValues(f.Page + 1)" asp-action="Index">
+                    Next <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+                </a>
+            }
+        </nav>
+    }
+}

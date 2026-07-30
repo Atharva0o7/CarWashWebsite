@@ -1,0 +1,104 @@
+@model StaffPageViewModel
+
+<header class="adm-head">
+    <div>
+        <p class="eyebrow">Access</p>
+        <h1>Staff accounts</h1>
+        <p class="muted">@Model.Staff.Count account@(Model.Staff.Count == 1 ? "" : "s") with access to this control room.</p>
+    </div>
+</header>
+
+<div class="adm-cols adm-cols--wide-first">
+    <section class="adm-panel adm-panel--flush">
+        <div class="table-scroll">
+            <table class="adm-table adm-table--rows">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Role</th>
+                        <th scope="col">Last signed in</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Staff)
+                    {
+                        <tr>
+                            <td>
+                                @row.User.FullName
+                                @if (row.IsLockedOut)
+                                {
+                                    <em class="sub tag tag--cancelled">Locked out</em>
+                                }
+                            </td>
+                            <td class="mono">@row.User.Email</td>
+                            <td>
+                                @foreach (var role in row.Roles)
+                                {
+                                    <span class="tag tag--@role.ToLowerInvariant()">@role</span>
+                                }
+                            </td>
+                            <td>@(row.User.LastLoginAt?.ToLocalTime().ToString("d MMM yyyy, h:mm tt") ?? "Never")</td>
+                            <td class="adm-row-actions">
+                                @if (row.IsLockedOut)
+                                {
+                                    <form method="post" action="/admin/staff/@row.User.Id/unlock">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn--ghost btn--xs">Unlock</button>
+                                    </form>
+                                }
+                                <form method="post" action="/admin/staff/@row.User.Id/delete"
+                                      onsubmit="return confirm('Remove @row.User.FullName? They will lose access immediately.');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn--ghost btn--xs btn--danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Add someone</h2></header>
+
+        <form method="post" action="/admin/staff">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            <label class="field">
+                <span>Full name</span>
+                <input asp-for="Form.FullName" placeholder="Sneha Kulkarni" />
+                <span asp-validation-for="Form.FullName" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Email</span>
+                <input asp-for="Form.Email" type="email" placeholder="sneha@pitstop.in" autocomplete="off" />
+                <span asp-validation-for="Form.Email" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Temporary password</span>
+                <input asp-for="Form.Password" type="text" autocomplete="new-password"
+                       placeholder="At least 10 chars, upper + lower + digit" />
+                <span asp-validation-for="Form.Password" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Role</span>
+                <select asp-for="Form.Role">
+                    <option value="@Roles.Staff">Staff — dashboard and bookings</option>
+                    <option value="@Roles.Admin">Admin — everything, including staff</option>
+                </select>
+            </label>
+
+            <button type="submit" class="btn btn--primary btn--block">Create account</button>
+            <p class="muted adm-hint">
+                Share the password over a private channel. There is no email delivery configured.
+            </p>
+        </form>
+    </section>
+</div>

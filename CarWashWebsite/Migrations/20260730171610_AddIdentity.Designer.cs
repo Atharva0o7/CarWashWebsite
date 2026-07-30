@@ -3,6 +3,7 @@ using System;
 using CarWashWebsite.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarWashWebsite.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260730171610_AddIdentity")]
+    partial class AddIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -396,109 +399,6 @@ namespace CarWashWebsite.Migrations
                     b.ToTable("plan_features", (string)null);
                 });
 
-            modelBuilder.Entity("CarWashWebsite.Models.ReminderLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Body")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)")
-                        .HasColumnName("body");
-
-                    b.Property<int?>("BookingId")
-                        .HasColumnType("integer")
-                        .HasColumnName("booking_id");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("customer_name");
-
-                    b.Property<string>("DedupeKey")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("dedupe_key");
-
-                    b.Property<string>("Error")
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("error");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)")
-                        .HasColumnName("phone");
-
-                    b.Property<string>("ProviderMessageId")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)")
-                        .HasColumnName("provider_message_id");
-
-                    b.Property<DateTimeOffset?>("SentAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("sent_at");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)")
-                        .HasColumnName("status");
-
-                    b.Property<int?>("SubscriptionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_id");
-
-                    b.Property<string>("TemplateName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("template_name");
-
-                    b.Property<string>("TemplateParamsJson")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("template_params_json");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id")
-                        .HasName("pk_reminder_logs");
-
-                    b.HasIndex("BookingId")
-                        .HasDatabaseName("ix_reminder_logs_booking_id");
-
-                    b.HasIndex("DedupeKey")
-                        .IsUnique()
-                        .HasDatabaseName("ix_reminder_logs_dedupe_key");
-
-                    b.HasIndex("SubscriptionId")
-                        .HasDatabaseName("ix_reminder_logs_subscription_id");
-
-                    b.HasIndex("Status", "CreatedAt")
-                        .HasDatabaseName("ix_reminder_logs_status_created_at");
-
-                    b.ToTable("reminder_logs", (string)null);
-                });
-
             modelBuilder.Entity("CarWashWebsite.Models.Service", b =>
                 {
                     b.Property<int>("Id")
@@ -606,134 +506,6 @@ namespace CarWashWebsite.Migrations
                     b.ToTable("service_includes", (string)null);
                 });
 
-            modelBuilder.Entity("CarWashWebsite.Models.Subscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("BodyType")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("body_type");
-
-                    b.Property<string>("CarBrand")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("car_brand");
-
-                    b.Property<string>("CarModel")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("car_model");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateOnly>("CurrentPeriodEnd")
-                        .HasColumnType("date")
-                        .HasColumnName("current_period_end");
-
-                    b.Property<DateOnly>("CurrentPeriodStart")
-                        .HasColumnType("date")
-                        .HasColumnName("current_period_start");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("customer_name");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)")
-                        .HasColumnName("email");
-
-                    b.Property<DateOnly?>("LastWashOn")
-                        .HasColumnType("date")
-                        .HasColumnName("last_wash_on");
-
-                    b.Property<string>("Locality")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)")
-                        .HasColumnName("locality");
-
-                    b.Property<int>("MonthlyPrice")
-                        .HasColumnType("integer")
-                        .HasColumnName("monthly_price");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(15)
-                        .HasColumnType("character varying(15)")
-                        .HasColumnName("phone");
-
-                    b.Property<string>("Reference")
-                        .IsRequired()
-                        .HasMaxLength(24)
-                        .HasColumnType("character varying(24)")
-                        .HasColumnName("reference");
-
-                    b.Property<string>("RegistrationNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("registration_number");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date")
-                        .HasColumnName("start_date");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<int>("WashPlanId")
-                        .HasColumnType("integer")
-                        .HasColumnName("wash_plan_id");
-
-                    b.Property<int>("WashesIncluded")
-                        .HasColumnType("integer")
-                        .HasColumnName("washes_included");
-
-                    b.Property<int>("WashesUsedThisPeriod")
-                        .HasColumnType("integer")
-                        .HasColumnName("washes_used_this_period");
-
-                    b.Property<bool>("WhatsAppOptIn")
-                        .HasColumnType("boolean")
-                        .HasColumnName("whats_app_opt_in");
-
-                    b.HasKey("Id")
-                        .HasName("pk_subscriptions");
-
-                    b.HasIndex("Phone")
-                        .HasDatabaseName("ix_subscriptions_phone");
-
-                    b.HasIndex("Reference")
-                        .IsUnique()
-                        .HasDatabaseName("ix_subscriptions_reference");
-
-                    b.HasIndex("WashPlanId")
-                        .HasDatabaseName("ix_subscriptions_wash_plan_id");
-
-                    b.HasIndex("Status", "CurrentPeriodEnd")
-                        .HasDatabaseName("ix_subscriptions_status_current_period_end");
-
-                    b.ToTable("subscriptions", (string)null);
-                });
-
             modelBuilder.Entity("CarWashWebsite.Models.Testimonial", b =>
                 {
                     b.Property<int>("Id")
@@ -826,10 +598,6 @@ namespace CarWashWebsite.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)")
                         .HasColumnName("wash_count");
-
-                    b.Property<int>("WashesIncluded")
-                        .HasColumnType("integer")
-                        .HasColumnName("washes_included");
 
                     b.HasKey("Id")
                         .HasName("pk_wash_plans");
@@ -1041,25 +809,6 @@ namespace CarWashWebsite.Migrations
                     b.Navigation("WashPlan");
                 });
 
-            modelBuilder.Entity("CarWashWebsite.Models.ReminderLog", b =>
-                {
-                    b.HasOne("CarWashWebsite.Models.Booking", "Booking")
-                        .WithMany()
-                        .HasForeignKey("BookingId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("fk_reminder_logs_bookings_booking_id");
-
-                    b.HasOne("CarWashWebsite.Models.Subscription", "Subscription")
-                        .WithMany()
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("fk_reminder_logs_subscriptions_subscription_id");
-
-                    b.Navigation("Booking");
-
-                    b.Navigation("Subscription");
-                });
-
             modelBuilder.Entity("CarWashWebsite.Models.ServiceInclude", b =>
                 {
                     b.HasOne("CarWashWebsite.Models.Service", "Service")
@@ -1070,18 +819,6 @@ namespace CarWashWebsite.Migrations
                         .HasConstraintName("fk_service_includes_services_service_id");
 
                     b.Navigation("Service");
-                });
-
-            modelBuilder.Entity("CarWashWebsite.Models.Subscription", b =>
-                {
-                    b.HasOne("CarWashWebsite.Models.WashPlan", "Plan")
-                        .WithMany()
-                        .HasForeignKey("WashPlanId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_subscriptions_wash_plans_wash_plan_id");
-
-                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

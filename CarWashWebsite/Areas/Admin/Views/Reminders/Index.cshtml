@@ -1,0 +1,151 @@
+@model ReminderPageViewModel
+
+<header class="adm-head">
+    <div>
+        <p class="eyebrow">Automation</p>
+        <h1>WhatsApp reminders</h1>
+        <p class="muted">
+            Provider: <strong>@Model.ProviderName</strong> ·
+            daily sweep at @Model.Options.DailyRunHour:00 ·
+            quiet hours @Model.Options.QuietHoursStart:00–@Model.Options.QuietHoursEnd:00
+        </p>
+    </div>
+    <div class="adm-head__tools">
+        <form method="post" action="/admin/reminders/run">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn--accent btn--sm">Run sweep now</button>
+        </form>
+        <form method="post" action="/admin/reminders/retry">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn--ghost btn--sm">Retry outstanding</button>
+        </form>
+    </div>
+</header>
+
+@if (!Model.CanSend)
+{
+    <div class="alert alert--info adm-notice">
+        <strong>Nothing is actually being delivered.</strong>
+        The active provider records messages but does not send them. Every row below shows
+        a <em>Send</em> link that opens WhatsApp with the text pre-filled, so you can send by
+        hand today. To automate, set <code>WhatsApp:Provider</code> to <code>CloudApi</code>
+        and supply <code>WhatsApp:PhoneNumberId</code> and <code>WhatsApp:AccessToken</code>
+        from a Meta Business account with approved templates.
+    </div>
+}
+
+<section class="stat-grid">
+    <article class="stat">
+        <p class="stat__label">Sent</p>
+        <p class="stat__value">@Model.CountOf(ReminderStatus.Sent)</p>
+    </article>
+    <article class="stat @(Model.CountOf(ReminderStatus.Pending) > 0 ? "stat--alert" : "")">
+        <p class="stat__label">Pending</p>
+        <p class="stat__value">@Model.CountOf(ReminderStatus.Pending)</p>
+        <p class="stat__note">Deferred by quiet hours</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Failed</p>
+        <p class="stat__value">@Model.CountOf(ReminderStatus.Failed)</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Skipped</p>
+        <p class="stat__value">@Model.CountOf(ReminderStatus.Skipped)</p>
+        <p class="stat__note">Opted out or disabled</p>
+    </article>
+</section>
+
+<form class="adm-filters" method="get" action="/admin/reminders">
+    <label class="field">
+        <span>Status</span>
+        <select name="status" onchange="this.form.submit()">
+            <option value="">Any status</option>
+            @foreach (var s in Enum.GetValues<ReminderStatus>())
+            {
+                <option value="@s" selected="@(Model.Status == s)">@s</option>
+            }
+        </select>
+    </label>
+    <label class="field">
+        <span>Type</span>
+        <select name="type" onchange="this.form.submit()">
+            <option value="">Any type</option>
+            @foreach (var t in Enum.GetValues<ReminderType>())
+            {
+                <option value="@t" selected="@(Model.Type == t)">@t</option>
+            }
+        </select>
+    </label>
+    <div class="adm-filters__actions">
+        <a class="btn btn--ghost btn--sm" href="/admin/reminders">Clear</a>
+    </div>
+</form>
+
+@if (Model.Logs.Count == 0)
+{
+    <section class="adm-panel">
+        <p class="adm-empty">
+            Nothing here yet. Add a subscriber, then press <strong>Run sweep now</strong>.
+        </p>
+    </section>
+}
+else
+{
+    <section class="adm-panel adm-panel--flush">
+        <div class="table-scroll">
+            <table class="adm-table adm-table--rows">
+                <thead>
+                    <tr>
+                        <th scope="col">Type</th>
+                        <th scope="col">To</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">When</th>
+                        <th scope="col">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var log in Model.Logs)
+                    {
+                        <tr>
+                            <td><span class="tag">@log.Type</span></td>
+                            <td>@log.CustomerName<em class="sub mono">@log.Phone</em></td>
+                            <td class="reminder-body">@log.Body</td>
+                            <td>
+                                <span class="tag tag--@(log.Status switch {
+                                    ReminderStatus.Sent => "completed",
+                                    ReminderStatus.Failed => "cancelled",
+                                    ReminderStatus.Pending => "pending",
+                                    _ => "staff" })">@log.Status</span>
+                                @if (!string.IsNullOrWhiteSpace(log.Error))
+                                {
+                                    <em class="sub">@log.Error</em>
+                                }
+                            </td>
+                            <td>
+                                @(log.SentAt?.ToLocalTime().ToString("d MMM, h:mm tt")
+                                  ?? log.CreatedAt.ToLocalTime().ToString("d MMM, h:mm tt"))
+                            </td>
+                            <td class="adm-row-actions">
+                                @if (log.Status != ReminderStatus.Sent)
+                                {
+                                    <a class="btn btn--ghost btn--xs"
+                                       href="https://wa.me/91@log.Phone?text=@Uri.EscapeDataString(log.Body)"
+                                       target="_blank" rel="noopener">
+                                        <svg class="ic ic--sm" aria-hidden="true"><use href="#i-whatsapp" /></svg>
+                                        Send
+                                    </a>
+                                    <form method="post" action="/admin/reminders/@log.Id/sent">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn--ghost btn--xs">Mark sent</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <p class="muted adm-hint">Showing the most recent 200.</p>
+}

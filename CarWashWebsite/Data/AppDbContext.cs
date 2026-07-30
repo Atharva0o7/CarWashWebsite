@@ -1,10 +1,13 @@
 using System.Text;
 using CarWashWebsite.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarWashWebsite.Data;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
+public class AppDbContext(DbContextOptions<AppDbContext> options)
+    : IdentityDbContext<AppUser>(options)
 {
     public DbSet<Service> Services => Set<Service>();
     public DbSet<ServiceInclude> ServiceIncludes => Set<ServiceInclude>();
@@ -16,9 +19,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<CarModel> CarModels => Set<CarModel>();
     public DbSet<Locality> Localities => Set<Locality>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<ReminderLog> ReminderLogs => Set<ReminderLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
+        // IdentityDbContext configures its own entities; do this before ours.
+        base.OnModelCreating(b);
+
+        // Identity's default table names are PascalCase ("AspNetUsers"). Rename them so
+        // the whole schema reads consistently in psql.
+        b.Entity<AppUser>(e =>
+        {
+            e.ToTable("users");
+            e.Property(x => x.FullName).HasMaxLength(120).IsRequired();
+        });
+        b.Entity<IdentityRole>().ToTable("roles");
+        b.Entity<IdentityUserRole<string>>().ToTable("user_roles");
+        b.Entity<IdentityUserClaim<string>>().ToTable("user_claims");
+        b.Entity<IdentityUserLogin<string>>().ToTable("user_logins");
+        b.Entity<IdentityUserToken<string>>().ToTable("user_tokens");
+        b.Entity<IdentityRoleClaim<string>>().ToTable("role_claims");
+
         b.Entity<Service>(e =>
         {
             e.ToTable("services");
@@ -127,6 +149,56 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
              .WithMany()
              .HasForeignKey(x => x.ServiceId)
              .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<Subscription>(e =>
+        {
+            e.ToTable("subscriptions");
+            e.HasIndex(x => x.Reference).IsUnique();
+            e.HasIndex(x => x.Phone);
+            e.HasIndex(x => new { x.Status, x.CurrentPeriodEnd });
+            e.Property(x => x.Reference).HasMaxLength(24).IsRequired();
+            e.Property(x => x.CustomerName).HasMaxLength(80).IsRequired();
+            e.Property(x => x.Phone).HasMaxLength(15).IsRequired();
+            e.Property(x => x.Email).HasMaxLength(160);
+            e.Property(x => x.CarBrand).HasMaxLength(80).IsRequired();
+            e.Property(x => x.CarModel).HasMaxLength(80).IsRequired();
+            e.Property(x => x.BodyType).HasMaxLength(20);
+            e.Property(x => x.RegistrationNumber).HasMaxLength(20);
+            e.Property(x => x.Locality).HasMaxLength(80).IsRequired();
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            e.HasOne(x => x.Plan)
+             .WithMany()
+             .HasForeignKey(x => x.WashPlanId)
+             .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        b.Entity<ReminderLog>(e =>
+        {
+            e.ToTable("reminder_logs");
+            // The guarantee that nobody is messaged twice for the same thing.
+            e.HasIndex(x => x.DedupeKey).IsUnique();
+            e.HasIndex(x => new { x.Status, x.CreatedAt });
+            e.Property(x => x.DedupeKey).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Phone).HasMaxLength(15).IsRequired();
+            e.Property(x => x.CustomerName).HasMaxLength(80);
+            e.Property(x => x.TemplateName).HasMaxLength(80).IsRequired();
+            e.Property(x => x.TemplateParamsJson).HasColumnType("jsonb");
+            e.Property(x => x.Body).HasMaxLength(1000).IsRequired();
+            e.Property(x => x.ProviderMessageId).HasMaxLength(120);
+            e.Property(x => x.Error).HasMaxLength(500);
+            e.Property(x => x.Type).HasConversion<string>().HasMaxLength(24);
+            e.Property(x => x.Status).HasConversion<string>().HasMaxLength(16);
+            e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            e.HasOne(x => x.Subscription)
+             .WithMany()
+             .HasForeignKey(x => x.SubscriptionId)
+             .OnDelete(DeleteBehavior.SetNull);
+            e.HasOne(x => x.Booking)
+             .WithMany()
+             .HasForeignKey(x => x.BookingId)
+             .OnDelete(DeleteBehavior.SetNull);
         });
 
         ApplySnakeCaseColumnNames(b);

@@ -1,0 +1,201 @@
+@model SubscriptionPageViewModel
+@{
+    var today = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<header class="adm-head">
+    <div>
+        <p class="eyebrow">Plans</p>
+        <h1>Subscriptions</h1>
+        <p class="muted">
+            @Model.Subscriptions.Count on this view ·
+            @Model.Subscriptions.Count(s => s.Status == SubscriptionStatus.Active) active ·
+            @Model.Subscriptions.Count(s => !s.WhatsAppOptIn) opted out of WhatsApp
+        </p>
+    </div>
+    <div class="adm-head__tools">
+        <form method="get" action="/admin/subscriptions" class="adm-range">
+            <label class="field">
+                <span>Status</span>
+                <select name="status" onchange="this.form.submit()">
+                    <option value="">All</option>
+                    @foreach (var s in Enum.GetValues<SubscriptionStatus>())
+                    {
+                        <option value="@s" selected="@(Model.Status == s)">@s</option>
+                    }
+                </select>
+            </label>
+        </form>
+        <form method="post" action="/admin/subscriptions/roll">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn--ghost btn--sm">Roll lapsed periods</button>
+        </form>
+    </div>
+</header>
+
+<div class="adm-cols adm-cols--wide-first">
+    <section class="adm-panel adm-panel--flush">
+        @if (Model.Subscriptions.Count == 0)
+        {
+            <p class="adm-empty">No subscriptions yet. Add one on the right.</p>
+        }
+        else
+        {
+            <div class="table-scroll">
+                <table class="adm-table adm-table--rows">
+                    <thead>
+                        <tr>
+                            <th scope="col">Reference</th>
+                            <th scope="col">Customer</th>
+                            <th scope="col">Plan</th>
+                            <th scope="col">Washes</th>
+                            <th scope="col">Period ends</th>
+                            <th scope="col" class="num">Monthly</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in Model.Subscriptions)
+                        {
+                            var daysLeft = s.CurrentPeriodEnd.DayNumber - today.DayNumber;
+                            <tr>
+                                <td>
+                                    <span class="mono">@s.Reference</span>
+                                    @if (!s.WhatsAppOptIn)
+                                    {
+                                        <em class="sub tag tag--cancelled">No WhatsApp</em>
+                                    }
+                                </td>
+                                <td>
+                                    @s.CustomerName<em class="sub mono">@s.Phone</em>
+                                    <em class="sub">@s.CarBrand @s.CarModel@(string.IsNullOrWhiteSpace(s.RegistrationNumber) ? "" : $" · {s.RegistrationNumber}")</em>
+                                </td>
+                                <td>@(s.Plan?.Name ?? "—")<em class="sub">@s.Locality</em></td>
+                                <td class="mono">
+                                    @s.WashesUsedThisPeriod / @s.WashesIncluded
+                                    <em class="sub">@s.WashesRemaining left</em>
+                                </td>
+                                <td>
+                                    @s.CurrentPeriodEnd.ToString("d MMM")
+                                    <em class="sub">@(daysLeft < 0 ? "lapsed" : daysLeft == 0 ? "today" : $"in {daysLeft}d")</em>
+                                </td>
+                                <td class="num mono">₹@s.MonthlyPrice.ToString("N0")</td>
+                                <td><span class="tag tag--@s.Status.ToString().ToLowerInvariant()">@s.Status</span></td>
+                                <td class="adm-row-actions">
+                                    <form method="post" action="/admin/subscriptions/@s.Id/wash">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn--ghost btn--xs" title="Record a wash against this plan">+ Wash</button>
+                                    </form>
+                                    <form method="post" action="/admin/subscriptions/@s.Id/optin">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="optIn" value="@((!s.WhatsAppOptIn).ToString().ToLowerInvariant())" />
+                                        <button type="submit" class="btn btn--ghost btn--xs">
+                                            @(s.WhatsAppOptIn ? "Mute" : "Unmute")
+                                        </button>
+                                    </form>
+                                    <form method="post" action="/admin/subscriptions/@s.Id/status">
+                                        @Html.AntiForgeryToken()
+                                        <select name="status" onchange="this.form.submit()" aria-label="Status for @s.Reference">
+                                            @foreach (var st in Enum.GetValues<SubscriptionStatus>())
+                                            {
+                                                <option value="@st" selected="@(s.Status == st)">@st</option>
+                                            }
+                                        </select>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Add a subscriber</h2></header>
+
+        <form method="post" action="/admin/subscriptions">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="alert alert--error"></div>
+
+            <label class="field">
+                <span>Customer name</span>
+                <input asp-for="Form.CustomerName" placeholder="Rohit Deshmukh" />
+                <span asp-validation-for="Form.CustomerName" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Mobile <em>(reminders go here)</em></span>
+                <input asp-for="Form.Phone" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210" />
+                <span asp-validation-for="Form.Phone" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Email <em>(optional)</em></span>
+                <input asp-for="Form.Email" type="email" placeholder="rohit@example.com" />
+                <span asp-validation-for="Form.Email" class="field__error"></span>
+            </label>
+
+            <label class="field">
+                <span>Plan</span>
+                <select asp-for="Form.WashPlanId">
+                    <option value="">Select a plan</option>
+                    @foreach (var p in Model.Plans)
+                    {
+                        <option value="@p.Id">@p.Name — ₹@p.PricePerMonth.ToString("N0")/mo · @p.WashesIncluded washes</option>
+                    }
+                </select>
+                <span asp-validation-for="Form.WashPlanId" class="field__error"></span>
+            </label>
+
+            <div class="grid-2">
+                <label class="field">
+                    <span>Car brand</span>
+                    <input asp-for="Form.CarBrand" placeholder="Hyundai" />
+                    <span asp-validation-for="Form.CarBrand" class="field__error"></span>
+                </label>
+                <label class="field">
+                    <span>Model</span>
+                    <input asp-for="Form.CarModel" placeholder="Creta" />
+                    <span asp-validation-for="Form.CarModel" class="field__error"></span>
+                </label>
+            </div>
+
+            <label class="field">
+                <span>Registration <em>(optional)</em></span>
+                <input asp-for="Form.RegistrationNumber" placeholder="MH12 AB 1234" />
+            </label>
+
+            <div class="grid-2">
+                <label class="field">
+                    <span>Locality</span>
+                    <select asp-for="Form.Locality">
+                        <option value="">Select area</option>
+                        @foreach (var l in Model.Localities)
+                        {
+                            <option value="@l">@l</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Form.Locality" class="field__error"></span>
+                </label>
+                <label class="field">
+                    <span>Start date</span>
+                    <input asp-for="Form.StartDate" type="date" />
+                    <span asp-validation-for="Form.StartDate" class="field__error"></span>
+                </label>
+            </div>
+
+            <label class="adm-check">
+                <input asp-for="Form.WhatsAppOptIn" type="checkbox" />
+                <span>Customer agreed to WhatsApp reminders</span>
+            </label>
+
+            <button type="submit" class="btn btn--primary btn--block">Create subscription</button>
+            <p class="muted adm-hint">
+                Only tick the WhatsApp box if they actually consented — messaging without
+                consent gets the business number blocked.
+            </p>
+        </form>
+    </section>
+</div>

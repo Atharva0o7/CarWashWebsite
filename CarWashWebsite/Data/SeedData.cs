@@ -213,6 +213,7 @@ public static class SeedData
             PricePerMonth = 899,
             ListPricePerMonth = 1396,
             WashCount = "4 express washes / month",
+            WashesIncluded = 4,
             SortOrder = 1,
             Features = [.. Feats(
                 "4 express body washes", "Free tyre dressing",
@@ -225,6 +226,7 @@ public static class SeedData
             PricePerMonth = 1699,
             ListPricePerMonth = 2796,
             WashCount = "8 washes + 1 interior / month",
+            WashesIncluded = 9,
             IsPopular = true,
             SortOrder = 2,
             Features = [.. Feats(
@@ -238,6 +240,7 @@ public static class SeedData
             PricePerMonth = 3299,
             ListPricePerMonth = 5497,
             WashCount = "Unlimited washes + quarterly polish",
+            WashesIncluded = 20,
             SortOrder = 3,
             Features = [.. Feats(
                 "Unlimited foam washes", "Monthly interior deep clean", "Quarterly machine polish",

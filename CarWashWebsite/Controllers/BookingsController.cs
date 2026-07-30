@@ -1,5 +1,6 @@
 using CarWashWebsite.Models;
 using CarWashWebsite.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarWashWebsite.Controllers;
@@ -32,7 +33,12 @@ public class BookingsController(
         return Created($"/api/bookings/{result.Reference}", result);
     }
 
+    /// <summary>
+    /// Staff-only. Booking references are short enough to enumerate, so this must not be
+    /// public — it would leak customer names, numbers and addresses.
+    /// </summary>
     [HttpGet("bookings/{reference}")]
+    [Authorize(Policy = Policies.StaffOrAdmin)]
     [ProducesResponseType<Booking>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<object>> Get(string reference, CancellationToken ct)

@@ -1,0 +1,283 @@
+@model DashboardViewModel
+@{
+    var trendPeak = Model.Trend.Select(t => t.Count).DefaultIfEmpty(0).Max();
+    var servicePeak = DashboardViewModel.Peak(Model.TopServices);
+    var localityPeak = DashboardViewModel.Peak(Model.TopLocalities);
+    var slotPeak = DashboardViewModel.Peak(Model.BySlot);
+    var bodyTotal = Model.ByBodyType.Sum(b => b.Count);
+    var statusTotal = Model.ByStatus.Sum(s => s.Count);
+    var range = $"?from={Model.From:yyyy-MM-dd}&to={Model.To:yyyy-MM-dd}";
+}
+
+<header class="adm-head">
+    <div>
+        <p class="eyebrow">Dashboard</p>
+        <h1>Control room</h1>
+        <p class="muted">
+            Showing @Model.From.ToString("d MMM yyyy") – @Model.To.ToString("d MMM yyyy"),
+            by job date.
+        </p>
+    </div>
+
+    <div class="adm-head__tools">
+        <form class="adm-range" method="get" action="/admin">
+            <label class="field">
+                <span>From</span>
+                <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+            </label>
+            <label class="field">
+                <span>To</span>
+                <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+            </label>
+            <button type="submit" class="btn btn--ghost btn--sm">Apply</button>
+        </form>
+        <a class="btn btn--accent btn--sm" href="/admin/analytics.xlsx@range">
+            <svg class="ic" aria-hidden="true"><use href="#i-arrow-right" /></svg>
+            Export Excel
+        </a>
+    </div>
+</header>
+
+@* ---------------------------------------------------- upcoming (the day's work) *@
+<section class="adm-panel">
+    <header class="adm-panel__head">
+        <h2>Next jobs out</h2>
+        <a class="link-more" href="/admin/bookings">
+            All bookings <svg class="ic ic--sm" aria-hidden="true"><use href="#i-chevron-right" /></svg>
+        </a>
+    </header>
+
+    @if (Model.UpcomingJobs.Count == 0)
+    {
+        <p class="adm-empty">Nothing scheduled. Quiet week.</p>
+    }
+    else
+    {
+        <div class="table-scroll">
+            <table class="adm-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Reference</th>
+                        <th scope="col">When</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Car</th>
+                        <th scope="col">Service</th>
+                        <th scope="col">Area</th>
+                        <th scope="col" class="num">Price</th>
+                        <th scope="col">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.UpcomingJobs)
+                    {
+                        <tr>
+                            <td><a class="mono" href="/admin/bookings/@b.Id">@b.Reference</a></td>
+                            <td>@b.PreferredDate.ToString("ddd d MMM")<em class="sub">@b.PreferredSlot</em></td>
+                            <td>@b.CustomerName<em class="sub mono">@b.Phone</em></td>
+                            <td>@b.CarBrand @b.CarModel<em class="sub">@b.BodyType</em></td>
+                            <td>@(b.Service?.Name ?? "—")</td>
+                            <td>@b.Locality</td>
+                            <td class="num mono">₹@b.QuotedPrice.ToString("N0")</td>
+                            <td><span class="tag tag--@b.Status.ToString().ToLowerInvariant()">@b.Status</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+@* ------------------------------------------------------------- headline stats *@
+<section class="stat-grid">
+    <article class="stat">
+        <p class="stat__label">Jobs today</p>
+        <p class="stat__value">@Model.JobsToday</p>
+        <p class="stat__note">Excludes cancelled</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Next 7 days</p>
+        <p class="stat__value">@Model.JobsThisWeek</p>
+        <p class="stat__note">Confirmed + pending</p>
+    </article>
+    <article class="stat @(Model.PendingCount > 0 ? "stat--alert" : "")">
+        <p class="stat__label">Awaiting confirmation</p>
+        <p class="stat__value">@Model.PendingCount</p>
+        <p class="stat__note">Call these customers</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Revenue booked</p>
+        <p class="stat__value">₹@Model.RevenueBooked.ToString("N0")</p>
+        <p class="stat__note">₹@Model.RevenueCompleted.ToString("N0") completed</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Average ticket</p>
+        <p class="stat__value">₹@Model.AverageTicket.ToString("N0")</p>
+        <p class="stat__note">Across live bookings</p>
+    </article>
+    <article class="stat">
+        <p class="stat__label">Cancellation rate</p>
+        <p class="stat__value">@Model.CancellationRate.ToString("0.0")%</p>
+        <p class="stat__note">@Model.TotalBookings bookings all time</p>
+    </article>
+</section>
+
+@* ------------------------------------------------------------- trend *@
+<section class="adm-panel">
+    <header class="adm-panel__head">
+        <h2>Bookings per day</h2>
+        <span class="muted">@Model.Trend.Sum(t => t.Count) in range</span>
+    </header>
+
+    @if (trendPeak == 0)
+    {
+        <p class="adm-empty">No bookings fall in this date range.</p>
+    }
+    else
+    {
+        <div class="chart" role="img"
+             aria-label="Daily booking counts from @Model.From.ToString("d MMM") to @Model.To.ToString("d MMM")">
+            @foreach (var point in Model.Trend)
+            {
+                var pct = (int)Math.Round(point.Count * 100d / trendPeak);
+                <div class="chart__col" title="@point.Date.ToString("ddd d MMM"): @point.Count booking(s), ₹@point.Revenue.ToString("N0")">
+                    <span class="chart__bar" style="height:@(Math.Max(pct, 4))%"></span>
+                    <span class="chart__tick">@point.Date.ToString("d/M")</span>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<div class="adm-cols">
+    @* --------------------------------------------------------- status mix *@
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Status mix</h2></header>
+        @if (statusTotal == 0)
+        {
+            <p class="adm-empty">Nothing in range.</p>
+        }
+        else
+        {
+            <ul class="bars">
+                @foreach (var slice in Model.ByStatus)
+                {
+                    var pct = (int)Math.Round(slice.Count * 100d / statusTotal);
+                    <li>
+                        <span class="bars__label">
+                            <span class="dot dot--@slice.Status.ToString().ToLowerInvariant()"></span>
+                            @slice.Status
+                        </span>
+                        <span class="bars__track">
+                            <span class="bars__fill bars__fill--@slice.Status.ToString().ToLowerInvariant()"
+                                  style="width:@Math.Max(pct, 2)%"></span>
+                        </span>
+                        <span class="bars__value">@slice.Count <em>@pct%</em></span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    @* --------------------------------------------------------- body type *@
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Body type mix</h2></header>
+        @if (bodyTotal == 0)
+        {
+            <p class="adm-empty">Nothing in range.</p>
+        }
+        else
+        {
+            <ul class="bars">
+                @foreach (var row in Model.ByBodyType)
+                {
+                    var pct = (int)Math.Round(row.Count * 100d / bodyTotal);
+                    <li>
+                        <span class="bars__label">@row.Name</span>
+                        <span class="bars__track">
+                            <span class="bars__fill" style="width:@Math.Max(pct, 2)%"></span>
+                        </span>
+                        <span class="bars__value">@row.Count <em>₹@row.Revenue.ToString("N0")</em></span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
+
+<div class="adm-cols">
+    @* --------------------------------------------------------- top services *@
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Top services</h2></header>
+        @if (servicePeak == 0)
+        {
+            <p class="adm-empty">Nothing in range.</p>
+        }
+        else
+        {
+            <ul class="bars">
+                @foreach (var row in Model.TopServices)
+                {
+                    <li>
+                        <span class="bars__label">@row.Name</span>
+                        <span class="bars__track">
+                            <span class="bars__fill" style="width:@Math.Max((int)Math.Round(row.Count * 100d / servicePeak), 2)%"></span>
+                        </span>
+                        <span class="bars__value">@row.Count <em>₹@row.Revenue.ToString("N0")</em></span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    @* --------------------------------------------------------- top localities *@
+    <section class="adm-panel">
+        <header class="adm-panel__head"><h2>Busiest localities</h2></header>
+        @if (localityPeak == 0)
+        {
+            <p class="adm-empty">Nothing in range.</p>
+        }
+        else
+        {
+            <ul class="bars">
+                @foreach (var row in Model.TopLocalities)
+                {
+                    <li>
+                        <span class="bars__label">@row.Name</span>
+                        <span class="bars__track">
+                            <span class="bars__fill" style="width:@Math.Max((int)Math.Round(row.Count * 100d / localityPeak), 2)%"></span>
+                        </span>
+                        <span class="bars__value">@row.Count <em>₹@row.Revenue.ToString("N0")</em></span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+</div>
+
+@* ------------------------------------------------------------- slot load *@
+<section class="adm-panel">
+    <header class="adm-panel__head">
+        <h2>Slot load</h2>
+        <span class="muted">Which parts of the day fill up</span>
+    </header>
+    @if (slotPeak == 0)
+    {
+        <p class="adm-empty">Nothing in range.</p>
+    }
+    else
+    {
+        <ul class="bars bars--wide">
+            @foreach (var row in Model.BySlot)
+            {
+                <li>
+                    <span class="bars__label">@row.Name</span>
+                    <span class="bars__track">
+                        <span class="bars__fill" style="width:@Math.Max((int)Math.Round(row.Count * 100d / slotPeak), 2)%"></span>
+                    </span>
+                    <span class="bars__value">@row.Count</span>
+                </li>
+            }
+        </ul>
+    }
+</section>
+

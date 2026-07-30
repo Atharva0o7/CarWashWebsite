@@ -1,0 +1,84 @@
+@{
+    var nav = ViewData["ActiveNav"] as string;
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "PitStop Admin")</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#000000" />
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin" data-nav="@nav">
+    <partial name="/Views/Shared/_Icons.cshtml" />
+
+    <header class="adm-top">
+        <div class="adm-top__inner">
+            <a class="brand" href="/admin">
+                <span class="brand__mark" aria-hidden="true">
+                    <svg viewBox="0 0 32 32"><use href="#i-tyre" /></svg>
+                </span>
+                <span class="brand__text">
+                    <strong>PitStop</strong>
+                    <em>Control Room</em>
+                </span>
+            </a>
+
+            <nav class="adm-nav" aria-label="Admin">
+                <a href="/admin" class="@(nav == "dashboard" ? "is-active" : "")">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-flag" /></svg> Dashboard
+                </a>
+                <a href="/admin/bookings" class="@(nav == "bookings" ? "is-active" : "")">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-calendar" /></svg> Bookings
+                </a>
+                <a href="/admin/subscriptions" class="@(nav == "subscriptions" ? "is-active" : "")">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-rupee" /></svg> Subscriptions
+                </a>
+                <a href="/admin/reminders" class="@(nav == "reminders" ? "is-active" : "")">
+                    <svg class="ic ic--sm" aria-hidden="true"><use href="#i-whatsapp" /></svg> Reminders
+                </a>
+                @if (isAdmin)
+                {
+                    <a href="/admin/staff" class="@(nav == "staff" ? "is-active" : "")">
+                        <svg class="ic ic--sm" aria-hidden="true"><use href="#i-seat" /></svg> Staff
+                    </a>
+                }
+            </nav>
+
+            <div class="adm-top__user">
+                <span class="adm-who">
+                    <strong>@User.Identity?.Name</strong>
+                    <em>@(isAdmin ? "Admin" : "Staff")</em>
+                </span>
+                <form method="post" action="/admin/logout">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn--ghost btn--xs">Sign out</button>
+                </form>
+            </div>
+        </div>
+    </header>
+
+    <main class="adm-main">
+        @if (TempData["Flash"] is string flash)
+        {
+            <div class="adm-flash" role="status">
+                <svg class="ic ic--sm" aria-hidden="true"><use href="#i-check" /></svg>
+                @flash
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="adm-foot">
+        PitStop Autocare · Control Room · signed in on the private admin port
+    </footer>
+
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
