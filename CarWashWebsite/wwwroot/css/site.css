@@ -586,6 +586,11 @@ body[data-nav="plans"] .site-nav a[data-nav="plans"]::after {
 .link-phone:hover { color: var(--accent-500); }
 .link-phone .ic { width: 17px; height: 17px; color: var(--accent-500); }
 
+/* Admin entry point for the mobile menu only — on desktop the header button covers it.
+   The header bar is a non-wrapping flex row, so adding another button there would
+   squeeze the brand on narrow phones. */
+.site-nav__admin { display: none; }
+
 .nav-toggle {
     display: none;
     place-items: center;
@@ -1876,6 +1881,11 @@ body[data-nav="plans"] .site-nav a[data-nav="plans"]::after {
     .book { grid-template-columns: 1fr; }
     .book__summary { position: static; order: -1; }
     .site-footer__top { grid-template-columns: 1fr; }
+
+    /* Mascot returns once the hero stacks into one column — there is room for it between
+       the copy and the price card again. Capped well below its 675px native width so it
+       stays a divider between the two, not a screenful the user has to scroll past. */
+    .hero__mascot { display: block; max-width: 200px; margin: 8px auto -1px; }
 }
 
 @media (max-width: 860px) {
@@ -1900,6 +1910,15 @@ body[data-nav="plans"] .site-nav a[data-nav="plans"]::after {
 
     .site-header__cta { margin-left: auto; }
     .site-header__cta .btn { display: none; }
+
+    /* The header buttons are hidden this narrow, so the admin link lives in the menu. */
+    .site-nav__admin {
+        display: block;
+        margin-top: 8px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line-2);
+        color: var(--muted);
+    }
 
     .offerbar__aside { display: none; }
     .section__head { flex-direction: column; align-items: flex-start; }
