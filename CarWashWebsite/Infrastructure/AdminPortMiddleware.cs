@@ -4,6 +4,14 @@ public class AdminPortOptions
 {
     /// <summary>Ports the admin area is reachable on. Everything else 404s for /admin.</summary>
     public int[] Ports { get; set; } = [5300, 7300];
+
+    /// <summary>
+    /// Whether to split admin and public traffic by port at all. Turn this off on hosts that
+    /// only expose a single port (Render, App Service, most containers behind one proxy) —
+    /// there is no second listener to isolate onto, so leaving it on makes the admin area
+    /// unreachable. Authentication still guards every admin action either way.
+    /// </summary>
+    public bool PortIsolation { get; set; } = true;
 }
 
 /// <summary>

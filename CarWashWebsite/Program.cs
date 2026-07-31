@@ -3,6 +3,7 @@ using CarWashWebsite.Infrastructure;
 using CarWashWebsite.Models;
 using CarWashWebsite.Services;
 using CarWashWebsite.Services.WhatsApp;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -109,12 +110,27 @@ builder.Services.AddHostedService<ReminderBackgroundService>();
 var adminPortOptions = new AdminPortOptions
 {
     Ports = builder.Configuration.GetSection("Admin:Ports").Get<int[]>() ?? [5300, 7300],
+    PortIsolation = builder.Configuration.GetValue("Admin:PortIsolation", true),
 };
 
 var app = builder.Build();
 
 // Create/upgrade the schema, seed the catalogue, and ensure an admin login exists.
 await DbInitializer.InitialiseAsync(app.Services);
+
+// Behind a TLS-terminating proxy (Render, App Service, nginx) the request reaches Kestrel
+// as plain HTTP. Without this, IsHttps is false, so the auth cookie's SameAsRequest policy
+// drops the Secure flag and UseHttpsRedirection cannot tell it is already on HTTPS.
+// KnownProxies/KnownNetworks are cleared because the proxy address is not fixed; that is
+// safe only while Kestrel is unreachable except through that proxy, which is how these
+// hosts work. Locally there are no X-Forwarded-* headers, so this is a no-op.
+var forwardedHeaders = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+};
+forwardedHeaders.KnownNetworks.Clear();
+forwardedHeaders.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeaders);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -135,8 +151,12 @@ app.UseStaticFiles();
 app.UseRouting();
 
 // Sits after routing (so the path is known) and before authentication, so a blocked
-// admin request never reaches the auth handlers at all.
-app.UseAdminPortIsolation(adminPortOptions);
+// admin request never reaches the auth handlers at all. Skipped entirely on single-port
+// hosts, where there is no separate listener to isolate the admin area onto.
+if (adminPortOptions.PortIsolation)
+{
+    app.UseAdminPortIsolation(adminPortOptions);
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
