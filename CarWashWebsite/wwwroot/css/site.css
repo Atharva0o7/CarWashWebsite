@@ -1872,7 +1872,6 @@ body[data-nav="plans"] .site-nav a[data-nav="plans"]::after {
 
 @media (max-width: 960px) {
     .hero__inner { grid-template-columns: 1fr; align-items: start; }
-    .hero__copy h1 { max-width: 22ch; }
     .hero__card { max-width: 480px; }
     .detail { grid-template-columns: 1fr; }
     .detail__card { position: static; }
@@ -1882,10 +1881,27 @@ body[data-nav="plans"] .site-nav a[data-nav="plans"]::after {
     .book__summary { position: static; order: -1; }
     .site-footer__top { grid-template-columns: 1fr; }
 
-    /* Mascot returns once the hero stacks into one column — there is room for it between
-       the copy and the price card again. Capped well below its 675px native width so it
-       stays a divider between the two, not a screenful the user has to scroll past. */
-    .hero__mascot { display: block; max-width: 200px; margin: 8px auto -1px; }
+    /* Mascot returns once the hero stacks into one column, sitting right under the tagline.
+       .hero__copy is unwrapped with display:contents so its children become grid items of
+       .hero__inner — otherwise the mascot is a sibling of the whole copy block and can only
+       be ordered above or below all of it, never between the tagline and the stats.
+       Row gap drops to 0 because the children carry their own margins already. */
+    .hero__inner { row-gap: 0; }
+    .hero__copy { display: contents; }
+    .hero__copy .eyebrow { order: 1; }
+    .hero__copy h1 { order: 2; max-width: 22ch; }
+    .hero__lede { order: 3; }
+    .hero__proof { order: 5; }
+    .hero__card { order: 6; margin-top: 26px; }
+
+    /* Capped well below its 675px native width so it stays a beat between the tagline and
+       the stats, not a screenful the user has to scroll past. */
+    .hero__mascot {
+        order: 4;
+        display: block;
+        max-width: 180px;
+        margin: 16px auto 0;
+    }
 }
 
 @media (max-width: 860px) {

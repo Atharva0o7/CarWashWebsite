@@ -312,11 +312,6 @@
                 <p>Before, mid-job and after shots on WhatsApp with timestamps. Extra work is quoted with a photo and needs your approval to proceed.</p>
             </article>
             <article class="feature">
-                <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-leaf" /></svg></span>
-                <h3>Actually water-efficient</h3>
-                <p>Our studios reclaim about 70% of wash water, and the doorstep waterless wash uses under 2 litres per car. Society rules stay happy.</p>
-            </article>
-            <article class="feature">
                 <span class="feature__icon"><svg class="ic" aria-hidden="true"><use href="#i-rupee" /></svg></span>
                 <h3>One price, written down</h3>
                 <p>No consumables charge, no GST surprise, no "sir, the pad was extra". The quote you accept is the bill you sign.</p>
@@ -390,47 +385,6 @@
     </div>
 </section>
 
-@* ------------------------------------------------------------------ testimonials *@
-<section class="section" id="reviews">
-    <div class="wrap">
-        <header class="section__head">
-            <div>
-                <p class="eyebrow">Reviews</p>
-                <h2>4.8 out of 5, from 18,400 washes</h2>
-            </div>
-            <div class="carousel__nav">
-                <button type="button" class="round-btn" data-carousel-prev="reviews" aria-label="Previous reviews">
-                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-left" /></svg>
-                </button>
-                <button type="button" class="round-btn" data-carousel-next="reviews" aria-label="Next reviews">
-                    <svg class="ic" aria-hidden="true"><use href="#i-chevron-right" /></svg>
-                </button>
-            </div>
-        </header>
-
-        <div class="carousel" data-carousel="reviews">
-            @foreach (var review in Model.Testimonials)
-            {
-                <figure class="review">
-                    <span class="stars stars--sm" aria-label="@review.Rating out of 5">
-                        @for (var i = 0; i < review.Rating; i++)
-                        {
-                            <svg class="ic" aria-hidden="true"><use href="#i-star" /></svg>
-                        }
-                    </span>
-                    <blockquote>@review.Quote</blockquote>
-                    <figcaption>
-                        <span class="avatar" aria-hidden="true">@review.Initials</span>
-                        <span>
-                            <strong>@review.Author</strong>
-                            <em>@review.Car · @review.Locality</em>
-                        </span>
-                    </figcaption>
-                </figure>
-            }
-        </div>
-    </div>
-</section>
 
 @* ------------------------------------------------------------------ coverage *@
 <section class="section section--tint" id="areas">
